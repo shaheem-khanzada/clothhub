@@ -9,7 +9,7 @@ import { Text } from '@/components/ui/Text';
 import { VStack } from '@/components/ui/VStack';
 import { Radii, Spacing, Typography } from '@/constants/theme';
 import type { Product } from '@/domain/catalog/types';
-import { useFavoritesStore, useIsFavorite } from '@/domain/favorites/useFavoritesStore';
+import { useIsFavorite, useToggleFavorite } from '@/domain/favorites/useFavoritesStore';
 import { useTheme } from '@/hooks/useTheme';
 import { sizedImageUrl } from '@/lib/images';
 
@@ -32,7 +32,7 @@ export function ProductCard({
   const theme = useTheme();
   const { t } = useTranslation();
   const liked = useIsFavorite(product.id);
-  const toggleFavorite = useFavoritesStore((state) => state.toggle);
+  const toggleFavorite = useToggleFavorite();
 
   const cover = product.images[0];
 

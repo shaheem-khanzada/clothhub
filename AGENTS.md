@@ -5,7 +5,8 @@ Read this first, then the AGENTS.md of the workspace you are changing:
 - `apps/mobile/AGENTS.md` — app architecture, UI and translation rules
 - `apps/api/AGENTS.md` — API conventions
 - `docs/architecture.md` — phases and deployment
-- `docs/data-model.md` — the Postgres design; new tables follow it
+- `docs/data-model.md` — the database design; new tables follow it
+- `docs/deployment.md` — development and production on Coolify
 
 ## Workspaces
 
@@ -29,10 +30,14 @@ npm workspaces; install once from the root with `npm install`. Never run
   - Local values go in `apps/api/.env` (git-ignored); deployed values go in Coolify.
   - Database URLs, OAuth keys and email keys are all secrets.
 - **The API never queries the scraper's database.** Only the ingest job reads
-  it (MySQL, via `mysql2`), through a read-only user.
+  it (MySQL, via `mysql2`), through a read-only user. ClothHub's own tables
+  live in their own databases (`clothhub_dev`, `clothhub_prod`) on the same
+  server.
+- **Shared code is plain TypeScript with extensionless imports** in
+  `packages/shared`, so Metro, tsx and tsup all resolve it.
 - **Sign-in is planned for a later phase.** Keep the seams described in
-  `docs/architecture.md` §7: session middleware, the `requireAccount()` gate,
-  and user-keyed tables.
+  `docs/architecture.md` §7: the API's `sessionMiddleware` / `requireUser`,
+  the app's `useSession()` / `useRequireAccount()`, and user-keyed tables.
 
 ## Before handing work back
 
@@ -41,5 +46,7 @@ npm run typecheck
 npm test
 ```
 
-For API changes that touch the database, run them against Postgres
-(`npm run db:up`, `npm run db:migrate`), not only unit tests.
+The API's integration tests run against a real MySQL (`npm run db:up`); CI
+runs everything above on each pull request. For catalogue or ingest changes,
+also run an import against a scraper dump (`npm run scraper:load`,
+`npm run ingest`) and check the numbers.

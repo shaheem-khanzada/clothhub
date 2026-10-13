@@ -1,11 +1,11 @@
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  dialect: 'postgresql',
+  dialect: 'mysql',
   schema: './src/db/schema/index.ts',
   out: './drizzle',
   casing: 'snake_case',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? 'postgres://clothhub:clothhub@localhost:5432/clothhub',
+    url: process.env.DATABASE_URL ?? 'mysql://clothhub:clothhub@127.0.0.1:3306/clothhub_dev',
   },
 });

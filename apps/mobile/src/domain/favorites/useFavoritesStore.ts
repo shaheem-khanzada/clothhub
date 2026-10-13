@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { useRequireAccount } from '@/domain/auth/session';
 import { mmkvStateStorage, STORAGE_KEYS } from '@/lib/mmkv';
 
 type FavoritesStore = {
@@ -47,4 +48,15 @@ export const useFavoritesStore = create<FavoritesStore>()(
 
 export function useIsFavorite(productId: string): boolean {
   return useFavoritesStore((state) => Boolean(state.savedAt[productId]));
+}
+
+/**
+ * Saves or un-saves a product, through the account gate: on the device
+ * today, and behind sign-in once accounts exist.
+ */
+export function useToggleFavorite() {
+  const requireAccount = useRequireAccount();
+  const toggle = useFavoritesStore((state) => state.toggle);
+
+  return (productId: string) => requireAccount(() => toggle(productId));
 }

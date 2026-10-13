@@ -20,7 +20,7 @@ import { Spacing } from '@/constants/theme';
 import type { Product } from '@/domain/catalog/types';
 import { useBrandQuery } from '@/domain/catalog/useBrandsQuery';
 import { useBrowseParams } from '@/domain/catalog/useBrowseStore';
-import { useFavoritesStore, useIsFavorite } from '@/domain/favorites/useFavoritesStore';
+import { useIsFavorite, useToggleFavorite } from '@/domain/favorites/useFavoritesStore';
 import { useProductQuery } from '@/domain/catalog/useProductQuery';
 import { useProductsQuery } from '@/domain/catalog/useProductsQuery';
 import { useTheme } from '@/hooks/useTheme';
@@ -106,7 +106,7 @@ export default function ProductReelView() {
   const activeProduct = products[activeIndex] ?? null;
 
   const liked = useIsFavorite(activeProduct?.id ?? '');
-  const toggleFavorite = useFavoritesStore((state) => state.toggle);
+  const toggleFavorite = useToggleFavorite();
 
   // Warm up the next few products' first photo so a swipe never lands on grey.
   useEffect(() => {

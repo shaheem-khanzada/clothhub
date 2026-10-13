@@ -1,14 +1,15 @@
 /**
  * Drizzle schema — one file per domain, re-exported here.
  *
- * Postgres schemas (namespaces) keep domains apart as the product grows:
- *   catalog.*   brands, products, images, sizes, price history (ingested)
- *   ingest.*    sync runs and source cursors
- *   auth.*      Better Auth tables (last phase)
- *   social.*    favourites, collections, follows, posts (later)
- *   signals.*   views, saves, shares, votes → trending / "most loved" (later)
+ * ClothHub's tables live in their own MySQL database (`clothhub_dev`,
+ * `clothhub_prod`) on the same server as the scraper's database:
+ *   catalog.ts   brands, products, images, variants (written by ingest)
+ *   ingest.ts    ingest run history and cursor
+ *   later:       auth (sign-in), social (saves, collections, follows, posts),
+ *                signals (views, saves, shares → trending / "most loved")
  *
- * See docs/data-model.md for the design. Tables are added module by module.
+ * See docs/data-model.md for the design.
  */
 
-export * from './namespaces.js';
+export * from './catalog.js';
+export * from './ingest.js';

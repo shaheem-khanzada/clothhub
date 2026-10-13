@@ -1,0 +1,1 @@
+CREATE INDEX `ix_products_listed_type` ON `products` (`listed`,`piece_type`);

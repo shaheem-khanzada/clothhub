@@ -1,25 +1,73 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { requestId } from 'hono/request-id';
 
+import type { Database } from './db/client.js';
+import { ApiError, errorBody, sendError } from './lib/errors.js';
+import type { AppEnv } from './lib/hono.js';
+import type { Logger } from './lib/logger.js';
+import { sessionMiddleware } from './lib/session.js';
+import { catalogRoutes } from './modules/catalog/routes.js';
+import { CatalogService } from './modules/catalog/service.js';
 import { healthRoutes } from './modules/health/routes.js';
 
+export type AppDependencies = {
+  db: Database;
+  logger?: Logger;
+};
+
 /**
- * Builds the HTTP app. Kept free of side effects (no listening, no database
- * connection) so tests can call `app.request()` directly.
+ * Builds the HTTP app. Kept free of side effects (no listening, no
+ * connections of its own) so tests call `app.request()` with a test database.
  *
- * Modules mount here as they are built: `/v1/catalog`, then `/v1/me` and
- * `/api/auth` in the sign-in phase.
+ * Modules mount here as they are built; `/v1/me` and `/api/auth` come with
+ * sign-in.
  */
-export function createApp() {
-  const app = new OpenAPIHono();
+export function createApp({ db, logger }: AppDependencies) {
+  const app = new OpenAPIHono<AppEnv>();
+
+  app.use(requestId());
+
+  if (logger) {
+    app.use(async (c, next) => {
+      const started = performance.now();
+      await next();
+      logger.info(
+        {
+          requestId: c.get('requestId'),
+          method: c.req.method,
+          path: c.req.path,
+          status: c.res.status,
+          ms: Math.round(performance.now() - started),
+        },
+        'request',
+      );
+    });
+  }
+
+  app.use(sessionMiddleware);
 
   app.route('/', healthRoutes);
+  app.route('/', catalogRoutes(new CatalogService(db)));
 
   app.doc31('/openapi.json', {
     openapi: '3.1.0',
-    info: { title: 'ClothHub API', version: '0.0.0' },
+    info: {
+      title: 'ClothHub API',
+      version: '1.0.0',
+      description: 'Fashion discovery for Pakistan: brands and products from many shops in one place.',
+    },
   });
 
-  app.notFound((c) => c.json({ error: { code: 'not_found', message: 'Not found' } }, 404));
+  app.notFound((c) => c.json(errorBody('not_found', 'Not found'), 404));
+
+  app.onError((error, c) => {
+    if (error instanceof ApiError) return sendError(c, error);
+
+    logger?.error({ requestId: c.get('requestId'), err: error }, 'Unhandled error');
+    return c.json(errorBody('internal_error', 'Something went wrong'), 500);
+  });
 
   return app;
 }
+
+export type App = ReturnType<typeof createApp>;

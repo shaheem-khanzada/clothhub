@@ -10,7 +10,7 @@ ClothHub is a Pakistan-first fashion discovery app: products from many brands in
 
 The app has three screens: Brands, then a brand's Products, then the Product reel with its detail sheet.
 
-There is no login and no backend. Favourites and collections are out of scope; the heart shows "Coming soon". Do not add features outside this scope without being asked.
+Data comes from the ClothHub API (`apps/api`). There is no login yet: favourites (the heart) are saved on the device. Collections are out of scope. Do not add features outside this scope without being asked.
 
 ## Architecture
 
@@ -24,7 +24,10 @@ src/
     ui/           Design-system primitives (Text, Button, Chip, Switch, RangeSlider…).
     catalog/      Catalog pieces shared by more than one screen.
   domain/catalog/ types, mapper, api, queryKeys, query hooks, browse store.
-  mocks/catalog/  Scraped sample data and a fake server (filter, sort, paging, facets).
+  domain/auth/    the sign-in seam: useSession(), useRequireAccount().
+  domain/favorites/ the hearts, on the device (Zustand + MMKV).
+  axios/          the HTTP client and ApiError.
+  test-utils/     API response fixtures and a React Query test wrapper.
   constants/      colors, typography, spacing, layout. Import them via '@/constants/theme'.
   lib/            queryClient, mmkv, formatters, images, feedback (haptics).
 i18next/          i18next setup and the en locale.
@@ -38,15 +41,17 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - Server data goes through React Query. Screens never call `api.ts` directly.
 - Client state shared across screens goes in Zustand. Today that is only `useBrowseStore`: per-brand sort, filters and search.
   - The product list and the reel read the same params, so they share one cache entry.
-- MMKV is only for deliberate persistence. Today that is only "gesture guide seen".
+- MMKV is only for deliberate persistence: "gesture guide seen" and favourites.
+- Actions that will belong to an account (saving, collecting) go through `useRequireAccount()` — today it runs them on the device; with sign-in it opens the sign-in sheet first.
 - A sheet keeps its draft state locally and commits it on Apply.
 
 ### Data
 
-- `ProductDto` and `BrandDto` mirror the scraper's output exactly.
-- `mapper.ts` is the only place that knows about each brand's quirks.
-- Screens only see `Product` and `Brand`.
-- To switch to a real API, replace the bodies in `api.ts` with `apiClient` calls and map the responses. The signatures stay the same.
+- The API contract lives in `@clothhub/shared`. `api.ts` parses every response with those schemas, then `mapper.ts` turns it into `Brand` / `Product`.
+- Screens only see `Brand` and `Product` (`domain/catalog/types.ts`), never the API shapes.
+- Requests go through `apiClient` (`src/axios`). Failures arrive as `ApiError` with the API's `code` (`not_found`, `invalid_request`) or `network_error` / `timeout`. React Query retries only network and server errors (`lib/queryClient.ts`).
+- The API URL comes from `EXPO_PUBLIC_API_URL` (`.env.local`, see `.env.example`).
+- Text clean-up (names, sizes, fabric, description parts) happens in the API's ingest job, not here.
 
 ### UI
 
@@ -66,6 +71,7 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 
 ### Quality
 
-- Run `npm run typecheck` before handing work back.
+- Run `npm run typecheck` and `npm test` before handing work back.
+- Tests are Jest (jest-expo) + React Native Testing Library, next to the code as `*.test.ts(x)`. `render` and `renderHook` are async (`await render(…)`). Mock HTTP with `axios-mock-adapter` on `apiClient`; build responses with `test-utils/fixtures`.
 - React Compiler is on: no ref reads or shared-value writes during render.
 - Native modules are used (MMKV, TrueSheet, Pulsar, glass), so use a dev build. Expo Go is not supported.

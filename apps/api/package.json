@@ -2,7 +2,7 @@
   "name": "@clothhub/api",
   "version": "0.0.0",
   "private": true,
-  "description": "ClothHub REST API: Hono + Zod + Drizzle on Postgres.",
+  "description": "ClothHub REST API: Hono + Zod + Drizzle on MySQL.",
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
@@ -14,7 +14,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "ingest": "tsx --env-file-if-exists=.env src/jobs/ingest/index.ts"
+    "ingest": "tsx --env-file-if-exists=.env src/jobs/ingest/index.ts",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration"
   },
   "dependencies": {
     "@clothhub/shared": "*",
@@ -24,7 +26,6 @@
     "hono": "^4.13.13",
     "mysql2": "^3.24.6",
     "pino": "^10.4.0",
-    "postgres": "^3.4.9",
     "zod": "^4.6.7"
   },
   "devDependencies": {

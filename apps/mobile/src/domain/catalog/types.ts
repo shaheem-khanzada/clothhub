@@ -1,73 +1,24 @@
-/* ------------------------------------------------------------------------ */
-/*  DTOs — the shape the scraper writes to Postgres today.                  */
-/*  Kept exactly as delivered, loose fields and all; the mapper is the only */
-/*  place that is allowed to know about their quirks.                       */
-/* ------------------------------------------------------------------------ */
+import type { PieceType, ProductComponent, ProductSort, Stitching } from '@clothhub/shared';
 
-export type BrandDto = {
-  brandId: number;
-  name: string;
-  website: string;
-  logo: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+/*
+ * Domain models — what screens render. The API's response shapes live in
+ * @clothhub/shared; `mapper.ts` turns them into these, so screens never
+ * depend on the wire format.
+ */
 
-export type ProductDto = {
-  productId: string;
-  images: string[];
-  title: string;
-  subTitle: string;
-  link: string;
-  /** "4890" or "Rs. 5,440" depending on the brand. */
-  price: string;
-  /** Same formats as `price`; `null` or `""` when not on sale. */
-  oldPrice: string | null;
-  /** One entry, in whatever casing the brand uses: "In Stock", "IN STOCK", "OUT OF STOCK". */
-  availability: string[];
-  sku: string;
-  isActive: boolean;
-  colors: string[] | null;
-  size: string[] | null;
-  /**
-   * Free text. Alkaram sends one line per entry with "Shirt::"-style section
-   * markers; Asim Jofa sends a paragraph the scraper split on commas.
-   */
-  details: string[];
-  tags: string[];
-  createdAt: string;
-  updatedAt: string;
-  brand: BrandDto;
-};
-
-/* ------------------------------------------------------------------------ */
-/*  Domain models — what screens render.                                    */
-/* ------------------------------------------------------------------------ */
+export type { PieceType, ProductComponent, ProductSort, Stitching };
 
 export type Brand = {
   id: string;
+  slug: string;
   name: string;
   website: string;
   logo: string | null;
+  /** Products the app shows for this brand. */
   productCount: number;
+  inStockCount: number;
   /** A representative product photo for the brand card. */
   coverImage: string | null;
-};
-
-/**
- * How many pieces the outfit comes in. Derived from the title because no brand
- * sends it as a field; it drives the "Type" filter.
- */
-export type PieceType = 'threePiece' | 'twoPiece' | 'single';
-
-export type Stitching = 'stitched' | 'unstitched';
-
-/** One part of an outfit — "Shirt: Printed khaddar shirt · 1.75 m". */
-export type ProductComponent = {
-  /** The brand's own label, e.g. "Shirt", "Dupatta", "Trouser". */
-  label: string;
-  lines: string[];
 };
 
 export type Product = {
@@ -87,6 +38,7 @@ export type Product = {
 
   images: string[];
 
+  /** Whole rupees. */
   price: number;
   /** The pre-sale price when the item is discounted. */
   compareAtPrice: number | null;
@@ -94,8 +46,11 @@ export type Product = {
   discountPercent: number | null;
 
   inStock: boolean;
+  /** The brand no longer sells it; still shown for saved items and shared links. */
+  isRetired: boolean;
+  /** The product page on the brand's website. */
   link: string;
-  sku: string;
+  sku: string | null;
 
   pieceType: PieceType;
   /** "3 Pc" / "Four Piece" / "3 PCS" in the title, as a number; `null` when the title gives none. */
@@ -103,6 +58,7 @@ export type Product = {
   stitching: Stitching | null;
   color: string | null;
   fabric: string | null;
+  /** Sizes that can be bought right now. */
   sizes: string[];
 
   /** Marketing copy, when the brand writes any. */
@@ -112,19 +68,13 @@ export type Product = {
   /** Loose detail lines that do not belong to a component. */
   highlights: string[];
 
-  createdAt: string;
+  /** When ClothHub first saw the product (ISO date). */
+  firstSeenAt: string;
 };
 
 /* ------------------------------------------------------------------------ */
 /*  Listing                                                                 */
 /* ------------------------------------------------------------------------ */
-
-export type ProductSort =
-  | 'featured'
-  | 'priceAsc'
-  | 'priceDesc'
-  | 'newest'
-  | 'oldest';
 
 export type PriceRange = readonly [number, number];
 

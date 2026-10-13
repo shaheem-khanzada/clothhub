@@ -1,19 +1,33 @@
 {
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "mysql",
   "entries": [
     {
       "idx": 0,
-      "version": "7",
-      "when": 1791922593664,
-      "tag": "0000_namespaces",
+      "version": "5",
+      "when": 1791929852210,
+      "tag": "0000_catalog",
       "breakpoints": true
     },
     {
       "idx": 1,
-      "version": "7",
-      "when": 1791922594515,
-      "tag": "0001_search_extensions",
+      "version": "5",
+      "when": 1791929853178,
+      "tag": "0001_search_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1791930976528,
+      "tag": "0002_listed_flag",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1791931139970,
+      "tag": "0003_listed_type_index",
       "breakpoints": true
     }
   ]

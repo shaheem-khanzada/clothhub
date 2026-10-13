@@ -132,7 +132,7 @@ classifier.
 | `products.source_product_id` | `liveProducts.id` |
 | `products.title` / `name` / `sku` | `title` / derived / handle from `productUrl` |
 | `products.description` | `description` |
-| `products.audience`, `category_id` | Classifier over `type` + `tags` + `title` + handle, plus the brand prior |
+| `products.audience`, `category` | Classifier over `type` + `tags` + `title` + handle, plus the brand prior |
 | `products.source_type`, `source_tags` | `type`, `tags` (kept raw for re-classifying) |
 | `products.price_minor`, `price_max_minor`, `compare_at_minor` | `price`, `priceMax`, `compareAtPrice` × 100, after currency handling |
 | `products.in_stock` | `inStock` |
@@ -142,14 +142,23 @@ classifier.
 | `product_images` | `images[]`: `src`, `width`, `height` (order = position) |
 | `ingest` change check | `contentHash`; cursor on `updatedAt` |
 
-**Ingest volume:** about 290k products, 1.2M variants and 1.3M images.
-Postgres handles this easily. A full run is upserts in batches of 1,000; later
-runs only touch rows whose `updatedAt` moved and whose `contentHash` changed.
+**Ingest volume:** about 290k products, 1.2M variants and 1.3M images. A
+full run upserts in batches of 500 and takes about 4 minutes; later runs only
+touch rows whose `updatedAt` moved and whose `contentHash` changed.
 
-## 6. Decisions needed from Furqan
+## 6. Decisions (14 Oct 2026)
 
-1. **USD-priced brands (9 brands).** Convert them to PKR at a stored rate and show a "≈" price, or leave them out of V1?
-2. **Mixed brands.** Show only their women's products (classified), with the unclassified rest hidden until reviewed?
-3. **Out of stock.** Hide from feeds and lists by default, but keep them reachable through saves and shared links?
-4. **Non-apparel for women** (jewellery, bags, footwear, accessories, about 15k products). Include them in V1 behind their own categories, or apparel only?
-5. **Scraper schedule.** The data is from one run on 8 Oct. How often should the scraper sync (daily?), so ClothHub's ingest can run right after it?
+1. **USD-priced brands** — hidden in V1 (`brands.status = hidden`) until the scraper records each store's
+   currency and the app can show it.
+2. **Mixed brands** — only their women's products are shown. Products that say nothing about who they are
+   for count as women's only in brands whose labelled products are at least 90% women's.
+3. **Out of stock** — shown, but after in-stock products in the default sort, and filterable away.
+   Retired products stay reachable through saves and shared links.
+4. **Scope** — women's clothing and unstitched only. Jewellery, bags, footwear and accessories stay in the
+   catalogue (classified) and can be switched on later without a re-import.
+5. **Database** — ClothHub's own databases on the scraper's MySQL server (`clothhub_dev`,
+   `clothhub_prod`); the scraper's database is only read.
+6. **Scraper schedule** — the scraper is being reworked this week; ClothHub's import runs every 6 hours
+   and only reads what changed, so it follows whatever schedule the scraper settles on.
+
+After the first import of this snapshot: 123,836 products listed (41,341 in stock) across 78 brands.
