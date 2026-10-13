@@ -66,7 +66,8 @@ Scraper MySQL  ──(read-only user)──▶  ingest job  ──▶  ClothHub 
   - upserts by `(brand, source_product_id)`, so re-runs are safe;
   - products that disappear from the source are **retired** (hidden, kept for saved lists and share links), not deleted;
   - records price changes for later "price dropped" features.
-- **ClothHub tables (V1 catalog):** `brands`, `products`, `product_images`, `product_sizes`, `product_components` (shirt / dupatta / trouser details), `ingest_runs`. Exact columns are decided after scanning the real scraper data (step 6).
+- **ClothHub tables (V1 catalog):** `brands`, `products`, `product_images`, `product_variants`, `categories`, `ingest.runs`. Columns follow the scraper data scan. See `docs/scraper-data.md` and `docs/data-model.md`.
+- **Ingest source:** the scraper's `liveProducts` table (validated and published), never `syncedProducts`.
 - **Indexes:** brand + sort keys for the list, a `tsvector` column for search, a trigram index on names.
 
 ---
@@ -104,7 +105,7 @@ Conventions: versioned paths (`/v1`), one JSON error shape (`{ error: { code, me
 | # | Phase | Done when |
 | --- | --- | --- |
 | 0 | **Repo** — git, move the app into `apps/mobile`, workspaces, CI (typecheck + tests) | Repo on GitHub, CI green, cloud sessions can open it |
-| 1 | **Scan the scraper data** — schema, row counts, field quality per brand | A short data report + the final catalogue schema |
+| 1 | **Scan the scraper data** — schema, row counts, field quality per brand | ✅ `docs/scraper-data.md` (snapshot of 8 Oct 2026) |
 | 2 | **Database + ingest** — Drizzle schema, migrations, ingest job, seed data | Local Docker DB filled from a scraper sample; re-runs are safe |
 | 3 | **Catalogue API** — the four endpoints, OpenAPI, tests | Tests pass against Docker Postgres |
 | 4 | **Mobile on the API** — real `api.ts`, environment URL per build, mock server kept only for tests | App browses real data locally |

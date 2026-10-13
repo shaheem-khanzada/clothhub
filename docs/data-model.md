@@ -58,32 +58,53 @@ here but are not created until their phase.
 
 ## `catalog` — what we show
 
+Shaped by the real scraper data. See `docs/scraper-data.md`: about 290k
+products, 1.2M variants and 1.3M images across 99 brands.
+
 ```
 brands ─┬─< products ─┬─< product_images
-        │             ├─< product_sizes
-        │             ├─< product_components   (shirt / dupatta / trouser)
+        │             ├─< product_variants      (size / colour / price / availability)
+        │             ├─< product_components    (shirt / dupatta / trouser) (later)
         │             ├─< product_prices        (history, append-only)
-        │             └─< product_categories >── categories (tree)
+        │             └── category_id ──> categories (tree)
         └─< brand_sources                       (where each brand's data comes from)
 ```
 
 - **brands**
-  - `id`, `slug` (unique), `name`, `website`, `logo_url`, `status` (`active` / `hidden`), `claimed_by_org_id` *(later: brand self-service)*
+  - `id`, `slug` (unique), `name` (curated, not the scraper's domain-derived name), `website`, `logo_url`
+  - `status` (`active` / `hidden`)
+  - `audience` (`women` / `mixed` / `men` / `kids`): set per brand, and used as the prior when a product has no audience signal.
+  - `currency` (`PKR` / `USD`): Shopify base currency. Some designers price in USD, and the scraper does not record it.
+  - `claimed_by_org_id` *(later: brand self-service)*
 - **products**
-  - **Identity:** `id`, `brand_id`, `source_product_id` — unique together with the brand. Plus `slug`.
-  - **Text:** `name`, `short_name` (no piece count), `title` (brand's original), `description`.
+  - **Identity:**
+    - `id`, `brand_id`
+    - `source_product_id`, unique together with the brand. Scraper id `"{brandId}_{shopifyId}"`.
+    - `sku`: the brand's code from the URL handle. Titles repeat across designs, so this is what tells them apart.
+    - `slug`
+  - **Text:** `name` (display), `short_name` (no piece count), `title` (brand's original), `description` (optional, about 7% empty).
+  - **Classification:**
+    - `audience` (`women` / `men` / `kids` / `unisex` / `unknown`)
+    - `category_id`
+    - Both are derived by ingest from `source_type` + `source_tags` + title. The raw values are kept, so products can be re-classified without re-syncing. The scraper's `type` has 3,010 distinct values.
   - **Price:**
-    - `price_minor`, `compare_at_minor`, `currency`;
+    - `price_minor`, `price_max_minor` (variants can differ), `compare_at_minor` (null unless greater than the price), `currency`;
     - `discount_percent` — a **generated column**, so "best on sale" is a plain indexed query.
-  - **Attributes:** `piece_count`, `stitching`, `fabric`, `color`, `attributes jsonb`.
-  - **State:** `in_stock`, `retired_at`, `first_seen_at`, `last_seen_at`.
+  - **Attributes:** `piece_count`, `stitching`, `fabric`, `color_families text[]`, `attributes jsonb`.
+  - **State:**
+    - `in_stock`, `retired_at`, `last_seen_at`
+    - `first_seen_at`: drives "new arrivals", because source creation dates are unreliable when a brand migrates its store.
+    - `source_published_at`
   - **Source:** `source_url` (the "Visit Brand" link).
   - **Search:** `search tsvector`, generated from name, brand, fabric and colour.
 - **product_images**
-  - `product_id`, `position`, `url`, `width`, `height`, `dominant_color` *(later: placeholders, colour filter)*
-- **product_sizes**
-  - `product_id`, `label`, `in_stock`
-- **product_components**
+  - `product_id`, `position`, `url`, `width`, `height` (the scraper provides both), `dominant_color` *(later: placeholders, colour filter)*
+- **product_variants**
+  - `product_id`, `source_variant_id`, `sku`
+  - `size` (normalised: `S`, `M`, `5-6Y` …) and `size_label` (raw)
+  - `color` (raw) and `color_family`
+  - `price_minor`, `compare_at_minor`, `available`
+- **product_components** *(later)*
   - `product_id`, `label` (Shirt / Dupatta / Trouser), `lines text[]`
 - **product_prices**
   - `product_id`, `price_minor`, `compare_at_minor`, `observed_at`
@@ -97,8 +118,9 @@ brands ─┬─< products ─┬─< product_images
 
 | Query | Index |
 | --- | --- |
-| Brand's products, newest / price sort | `(brand_id, retired_at, created_at desc)`, `(brand_id, price_minor)` |
-| Best on sale | partial index `(discount_percent desc) where compare_at_minor is not null and retired_at is null` |
+| Women's feed, newest first (in stock only) | partial `(audience, category_id, first_seen_at desc) where in_stock and retired_at is null` |
+| Brand's products, newest / price sort | `(brand_id, audience, in_stock, first_seen_at desc)`, `(brand_id, price_minor)` |
+| Best on sale | partial index `(audience, discount_percent desc) where compare_at_minor is not null and in_stock and retired_at is null` |
 | Search | `GIN (search)` + trigram `GIN (name gin_trgm_ops)` |
 | Ingest upsert | unique `(brand_id, source_product_id)` |
 
