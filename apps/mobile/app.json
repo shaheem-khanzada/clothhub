@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "ClothHub",
+    "slug": "clothhub",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "clothhub",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0B0C",
+    "ios": {
+      "bundleIdentifier": "codes.furqan.clothhub",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "codes.furqan.clothhub",
+      "predictiveBackGestureEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#0B0B0C"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120,
+          "resizeMode": "contain",
+          "backgroundColor": "#0B0B0C"
+        }
+      ],
+      "expo-localization",
+      "expo-web-browser",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/BricolageGrotesque-Regular.ttf",
+            "./assets/fonts/BricolageGrotesque-Medium.ttf",
+            "./assets/fonts/BricolageGrotesque-SemiBold.ttf",
+            "./assets/fonts/BricolageGrotesque-Bold.ttf",
+            "./assets/fonts/BricolageGrotesque-DisplaySemiBold.ttf",
+            "./assets/fonts/BricolageGrotesque-DisplayBold.ttf"
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "icon": "./assets/images/icon.png"
+  }
+}

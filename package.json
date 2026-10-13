@@ -1,0 +1,23 @@
+{
+  "name": "clothhub",
+  "private": true,
+  "description": "ClothHub — fashion discovery for Pakistan. Monorepo: mobile app, API, shared contracts.",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "mobile": "npm run start -w @clothhub/mobile",
+    "api": "npm run dev -w @clothhub/api",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate -w @clothhub/api",
+    "db:migrate": "npm run db:migrate -w @clothhub/api",
+    "scan:scraper": "node scripts/scan-scraper-db.mjs"
+  }
+}

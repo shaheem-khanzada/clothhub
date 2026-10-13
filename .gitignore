@@ -1,0 +1,19 @@
+# Dependencies & builds
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment — real values live in Coolify and local .env files only
+.env
+.env.*
+!.env.example
+
+# Local scraper data snapshot (scripts/scan-scraper-db.mjs)
+.data-scan/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
