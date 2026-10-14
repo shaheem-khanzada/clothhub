@@ -93,8 +93,8 @@ In each app → **Scheduled tasks** → add:
 The first run imports everything (about 4 minutes for 290k products); later runs only read what the
 scraper changed and take seconds. The placeholders job then makes a ThumbHash for each new cover photo
 (the app shows it the instant a card appears): the first run fetches a 100 px copy of every listed cover,
-about 40 minutes; later runs take seconds. Neither job can overlap itself. Runs cannot overlap, and dev and prod never block each other. Force a
-full re-normalisation after changing ingest rules with `node dist/jobs/ingest.js --full` (bump
+about 40 minutes; later runs take seconds. Neither job can overlap itself, and dev and prod never block
+each other. Force a full re-normalisation after changing ingest rules with `node dist/jobs/ingest.js --full` (bump
 `INGEST_VERSION` in `apps/api/src/modules/ingest/transform.ts` so unchanged rows are re-processed too).
 
 ## 4. Check it
