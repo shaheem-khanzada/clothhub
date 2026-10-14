@@ -40,8 +40,9 @@ export const ProductImageSchema = z
      * ThumbHash (base64) of the photo: a ~25-byte blurred preview the app
      * decodes on the device, so a card shows the outfit before any download.
      * Generated for covers (the first image) after import; null until then.
+     * Defaults to null so the app still reads an API from before this field.
      */
-    thumbhash: z.string().nullable(),
+    thumbhash: z.string().nullable().default(null),
   })
   .meta({ id: 'ProductImage' });
 
@@ -109,8 +110,11 @@ export const ProductSchema = z
     stitching: StitchingSchema.nullable(),
     fabric: z.string().nullable(),
     color: z.string().nullable(),
-    /** Colour families ("red", "beige", "multi"…) — for filters and for tinting a photo while it loads. */
-    colors: z.array(z.string()),
+    /**
+     * Colour families ("red", "beige", "multi"…) — for filters and for tinting
+     * a photo while it loads. Defaults to none for an API from before this field.
+     */
+    colors: z.array(z.string()).default([]),
     sizes: z.array(ProductSizeSchema),
 
     description: z.string().nullable(),
