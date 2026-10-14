@@ -1,35 +1,43 @@
-import * as mockServer from '@/mocks/catalog/server';
+import {
+  BrandListResponseSchema,
+  ProductPageResponseSchema,
+  ProductSchema,
+} from '@clothhub/shared';
 
-import type {
-  Brand,
-  Product,
-  ProductListParams,
-  ProductPage,
-} from './types';
+import { apiClient } from '@/axios';
+
+import { mapBrand, mapProduct, mapProductPage, toProductListQuery } from './mapper';
+import type { Brand, Product, ProductListParams, ProductPage } from './types';
 
 /*
- * The catalog's request functions. Screens and hooks call these, never the
- * transport.
+ * The catalog's request functions. Hooks call these, never the transport.
  *
- * There is no ClothHub API yet, so each function is served by the bundled mock
- * server. When endpoints exist, replace each body with an `apiClient` call
- * (`@/axios`) and map the response with `./mapper` — the signatures, and
- * therefore every screen, stay the same.
+ * Every response is parsed with the API's own schemas from @clothhub/shared,
+ * so a contract mismatch fails loudly here instead of rendering half-empty
+ * cards.
  */
 
 export const PRODUCTS_PAGE_SIZE = 20;
 
-export function fetchBrands(): Promise<Brand[]> {
-  return mockServer.getBrands();
+export async function fetchBrands(): Promise<Brand[]> {
+  const { data } = await apiClient.get('/v1/brands');
+
+  return BrandListResponseSchema.parse(data).brands.map(mapBrand);
 }
 
-export function fetchProductPage(
+export async function fetchProductPage(
   params: ProductListParams,
   page: number,
 ): Promise<ProductPage> {
-  return mockServer.getProducts(params, page, PRODUCTS_PAGE_SIZE);
+  const { data } = await apiClient.get('/v1/products', {
+    params: toProductListQuery(params, page, PRODUCTS_PAGE_SIZE),
+  });
+
+  return mapProductPage(ProductPageResponseSchema.parse(data));
 }
 
-export function fetchProduct(productId: string): Promise<Product> {
-  return mockServer.getProduct(productId);
+export async function fetchProduct(productId: string): Promise<Product> {
+  const { data } = await apiClient.get(`/v1/products/${encodeURIComponent(productId)}`);
+
+  return mapProduct(ProductSchema.parse(data));
 }

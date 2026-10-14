@@ -13,7 +13,10 @@
       "@/i18next/*": [
         "./i18next/*"
       ]
-    }
+    },
+    "types": [
+      "jest"
+    ]
   },
   "include": [
     "**/*.ts",

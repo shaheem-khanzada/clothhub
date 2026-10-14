@@ -1,4 +1,4 @@
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { migrate } from 'drizzle-orm/mysql2/migrator';
 
 import { loadEnv } from '../lib/env.js';
 import { createDatabase } from './client.js';
@@ -8,11 +8,11 @@ import { createDatabase } from './client.js';
  * Coolify runs this before each deploy (`node dist/migrate.js`).
  */
 const env = loadEnv();
-const { db, sql } = createDatabase(env.DATABASE_URL, { max: 1 });
+const { db, pool } = createDatabase(env.DATABASE_URL, { connectionLimit: 1 });
 
 try {
   await migrate(db, { migrationsFolder: process.env.MIGRATIONS_DIR ?? 'drizzle' });
   console.log('Migrations applied.');
 } finally {
-  await sql.end();
+  await pool.end();
 }

@@ -12,6 +12,9 @@ coverage/
 # Local scraper data snapshot (scripts/scan-scraper-db.mjs)
 .data-scan/
 
+# Local run state from scripts/dev.sh (API log and pid)
+.dev/
+
 # OS / editors
 .DS_Store
 .idea/

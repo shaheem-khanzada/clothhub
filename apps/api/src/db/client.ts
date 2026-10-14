@@ -1,17 +1,27 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/mysql2';
+import mysql from 'mysql2/promise';
 
 import * as schema from './schema/index.js';
 
 /**
- * One pool per process. `max` stays modest: Coolify runs a single API
- * container per environment and Postgres connections are not free.
+ * One pool per process. `connectionLimit` stays modest: Coolify runs a single
+ * API container per environment, and the MySQL server is shared with the
+ * scraper.
  */
-export function createDatabase(url: string, options: { max?: number } = {}) {
-  const sql = postgres(url, { max: options.max ?? 10 });
-  const db = drizzle(sql, { schema, casing: 'snake_case' });
+export function createDatabase(url: string, options: { connectionLimit?: number } = {}) {
+  const pool = mysql.createPool({
+    uri: url,
+    connectionLimit: options.connectionLimit ?? 10,
+    // Timestamps are stored in UTC and read back as UTC.
+    timezone: 'Z',
+    dateStrings: false,
+    supportBigNumbers: true,
+    bigNumberStrings: false,
+  });
 
-  return { db, sql };
+  const db = drizzle({ client: pool, schema, mode: 'default', casing: 'snake_case' });
+
+  return { db, pool };
 }
 
 export type Database = ReturnType<typeof createDatabase>['db'];
