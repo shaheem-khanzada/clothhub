@@ -25,7 +25,17 @@ docker-compose.yml       local MySQL 8.4 (+ the API image, optional)
 
 ## Getting started
 
-Requirements: Node 22 (`.nvmrc`), Docker, Xcode / Android Studio for the app.
+Requirements: Node 22 (`.nvmrc`), Homebrew or Docker, Xcode / Android Studio for the app.
+
+**Everything in one command (Mac)** — MySQL, the catalogue from a scraper
+dump in `~/Downloads`, the API, and the app in the iOS simulator:
+
+```bash
+bash scripts/dev.sh            # --android, --no-app, --reimport, --dump <file>, --stop
+```
+
+It is safe to re-run: each step checks what is already done. The steps it
+runs, by hand:
 
 ```bash
 npm install                      # once, from the repo root (all workspaces)
