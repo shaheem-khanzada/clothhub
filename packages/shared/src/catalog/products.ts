@@ -103,6 +103,8 @@ export const ProductSchema = z
     stitching: StitchingSchema.nullable(),
     fabric: z.string().nullable(),
     color: z.string().nullable(),
+    /** Colour families ("red", "beige", "multi"…) — for filters and for tinting a photo while it loads. */
+    colors: z.array(z.string()),
     sizes: z.array(ProductSizeSchema),
 
     description: z.string().nullable(),

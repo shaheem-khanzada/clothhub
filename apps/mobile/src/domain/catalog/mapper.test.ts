@@ -33,6 +33,10 @@ describe('mapProduct', () => {
     expect(product.link).toBe('https://saya.pk/products/sp-12875');
   });
 
+  it('keeps the colour families for tinting and filters', () => {
+    expect(mapProduct(aProduct({ colors: ['red', 'gold'] })).colors).toEqual(['red', 'gold']);
+  });
+
   it('keeps only the sizes that can be bought', () => {
     const product = mapProduct(
       aProduct({

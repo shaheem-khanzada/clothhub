@@ -230,7 +230,6 @@ export default function ProductReelView() {
               product={item}
               width={width}
               height={height}
-              pixelRatio={scale}
               topInset={insets.top}
               sheetHeight={sheetHeight}
             />

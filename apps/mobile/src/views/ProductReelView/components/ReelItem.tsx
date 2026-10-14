@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,10 +12,11 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
+import { ProductImage } from '@/components/catalog/ProductImage';
 import { Spacing } from '@/constants/theme';
+import { toneOf } from '@/constants/tones';
 import type { Product } from '@/domain/catalog/types';
 import { feedback } from '@/lib/feedback';
-import { sizedImageUrl } from '@/lib/images';
 
 import { ImageProgress } from './ImageProgress';
 import { ThumbnailStrip, THUMBNAIL_STRIP_HEIGHT } from './ThumbnailStrip';
@@ -28,7 +28,6 @@ type ReelItemProps = {
   product: Product;
   width: number;
   height: number;
-  pixelRatio: number;
   /** Status bar height — the top shade only needs to cover this. */
   topInset: number;
   /** Distance from the bottom of the screen to the top of the collapsed sheet. */
@@ -44,7 +43,6 @@ export function ReelItem({
   product,
   width,
   height,
-  pixelRatio,
   topInset,
   sheetHeight,
 }: ReelItemProps) {
@@ -130,10 +128,11 @@ export function ReelItem({
             onPress={handleTap}
             style={{ width, height }}
           >
-            <Image
-              source={{ uri: sizedImageUrl(item, width * pixelRatio) }}
-              contentFit="cover"
-              transition={150}
+            <ProductImage
+              uri={item}
+              width={width}
+              tone={toneOf(product.colors)}
+              contentPosition="center"
               priority={index === 0 ? 'high' : 'normal'}
               style={StyleSheet.absoluteFill}
             />
@@ -163,7 +162,12 @@ export function ReelItem({
           exiting={FadeOut.duration(220)}
           style={[styles.strip, { bottom: sheetHeight + Spacing.twoAndOne }]}
         >
-          <ThumbnailStrip images={images} index={imageIndex} onSelect={goToImage} />
+          <ThumbnailStrip
+            images={images}
+            tone={toneOf(product.colors)}
+            index={imageIndex}
+            onSelect={goToImage}
+          />
         </Animated.View>
       ) : null}
 

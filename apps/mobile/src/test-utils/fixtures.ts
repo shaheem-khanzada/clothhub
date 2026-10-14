@@ -57,6 +57,7 @@ export function aProduct(overrides: Partial<ProductResponse> = {}): ProductRespo
     stitching: 'unstitched',
     fabric: 'Lawn',
     color: 'Green',
+    colors: ['green'],
     sizes: [
       { label: 'S', inStock: false },
       { label: 'M', inStock: true },

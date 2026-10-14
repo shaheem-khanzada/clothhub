@@ -1,8 +1,8 @@
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 
+import { ProductImage } from '@/components/catalog/ProductImage';
 import { GlassIconButton } from '@/components/ui/GlassIconButton';
 import { HStack } from '@/components/ui/HStack';
 import { Text } from '@/components/ui/Text';
@@ -11,7 +11,6 @@ import { PageGutter, Radii, Spacing, Typography } from '@/constants/theme';
 import type { Brand } from '@/domain/catalog/types';
 import { useTheme } from '@/hooks/useTheme';
 import { feedback } from '@/lib/feedback';
-import { sizedImageUrl } from '@/lib/images';
 
 export const BRAND_CARD_HEIGHT = 216;
 
@@ -23,9 +22,9 @@ type BrandCardProps = {
 export function BrandCard({ brand, onPress }: BrandCardProps) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const { width, scale } = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
-  const imageWidth = (width - PageGutter * 2) * scale;
+  const cardWidth = width - PageGutter * 2;
 
   const handlePress = () => {
     feedback.tap();
@@ -43,16 +42,14 @@ export function BrandCard({ brand, onPress }: BrandCardProps) {
         pressed && styles.pressed,
       ]}
     >
-      {brand.coverImage ? (
-        <Image
-          source={{ uri: sizedImageUrl(brand.coverImage, imageWidth) }}
-          // Model shots: keep faces and the neckline in frame.
-          contentPosition="top"
-          contentFit="cover"
-          transition={250}
-          style={StyleSheet.absoluteFill}
-        />
-      ) : null}
+      <ProductImage
+        uri={brand.coverImage}
+        width={cardWidth}
+        recyclingKey={brand.id}
+        // Model shots: keep faces and the neckline in frame.
+        contentPosition="top"
+        style={StyleSheet.absoluteFill}
+      />
 
       <LinearGradient
         colors={['transparent', theme.scrim, 'rgba(0, 0, 0, 0.85)']}

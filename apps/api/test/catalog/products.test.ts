@@ -219,6 +219,7 @@ describe('GET /v1/products/:productId', () => {
       compareAtPrice: 8990,
       discountPercent: 50,
       currency: 'PKR',
+      colors: ['green'],
       isRetired: false,
       sizes: [
         { label: 'S', inStock: true },

@@ -61,7 +61,10 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - Sheets use `@lodev09/react-native-true-sheet`. Present and dismiss them by name.
   - The reel's product sheet stays presented the whole time. Anything that must sit above it renders in `TrueSheetOverlay`.
 - Haptics go through `feedback.*`, named by event (tap, select, toggle, page, unavailable).
-- Product images are resized through `sizedImageUrl(url, px)` (Shopify CDN `width`).
+- Product and brand photos render through `ProductImage`, never `expo-image` directly.
+  - It sizes the CDN request (`sizedImageUrl(url, px)`, Shopify `width`), shows a tinted `SilkSheen` while loading, a blurred 32 px preview, then cross-dissolves to the full photo.
+  - Pass `tone={toneOf(product.colors)}`, and `recyclingKey` in recycled lists. Use `preview={false}` for small thumbnails.
+  - Loading placeholders for photo areas use `SilkSheen`, not the grey `Skeleton`, so the skeleton and the photo share one surface.
 - Floating controls over photos use `GlassIconButton`. It renders Liquid Glass on iOS 26 and a frosted disc elsewhere.
 - On iOS, prefer native controls where they give the platform feel:
   - Screen-level buttons go in `Stack.Toolbar` with SF Symbols. Native menus use `Stack.Toolbar.Menu`.

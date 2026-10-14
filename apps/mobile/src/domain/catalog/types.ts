@@ -57,6 +57,8 @@ export type Product = {
   pieceCount: number | null;
   stitching: Stitching | null;
   color: string | null;
+  /** Colour families ("red", "beige"…); the first tints the photo while it loads. */
+  colors: string[];
   fabric: string | null;
   /** Sizes that can be bought right now. */
   sizes: string[];

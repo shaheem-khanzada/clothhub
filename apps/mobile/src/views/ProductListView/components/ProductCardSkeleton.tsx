@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { SilkSheen } from '@/components/catalog/SilkSheen';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Radii, Spacing } from '@/constants/theme';
 
@@ -12,7 +13,10 @@ type ProductCardSkeletonProps = {
 export function ProductCardSkeleton({ width }: ProductCardSkeletonProps) {
   return (
     <View style={{ width }}>
-      <Skeleton style={styles.image} />
+      {/* The photo area uses the silk surface photos load on; text lines stay plain. */}
+      <View style={styles.image}>
+        <SilkSheen tone={null} />
+      </View>
       <Skeleton style={styles.name} />
       <Skeleton style={styles.price} />
     </View>
@@ -23,6 +27,7 @@ const styles = StyleSheet.create({
   image: {
     aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO,
     borderRadius: Radii.image,
+    overflow: 'hidden',
   },
 
   name: {

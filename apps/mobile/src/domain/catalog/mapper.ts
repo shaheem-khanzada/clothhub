@@ -51,6 +51,7 @@ export function mapProduct(product: ProductResponse): Product {
     pieceCount: product.pieceCount,
     stitching: product.stitching,
     color: product.color,
+    colors: product.colors,
     fabric: product.fabric,
     sizes: product.sizes.filter((size) => size.inStock).map((size) => size.label),
 

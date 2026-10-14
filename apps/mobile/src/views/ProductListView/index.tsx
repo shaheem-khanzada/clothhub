@@ -43,7 +43,7 @@ export default function ProductListView() {
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { width, scale } = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
   const { brandId } = useLocalSearchParams<{ brandId: string }>();
 
@@ -150,7 +150,6 @@ export default function ProductListView() {
           <ProductCard
             product={item}
             width={cardWidth}
-            pixelRatio={scale}
             onPress={() => handleProductPress(item)}
           />
         )}
