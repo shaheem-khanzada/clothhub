@@ -37,6 +37,7 @@ export function mapProduct(product: ProductResponse): Product {
     title: product.title,
 
     images: product.images.map((image) => image.url),
+    coverThumbhash: product.images[0]?.thumbhash ?? null,
 
     price: product.price,
     compareAtPrice: product.compareAtPrice,

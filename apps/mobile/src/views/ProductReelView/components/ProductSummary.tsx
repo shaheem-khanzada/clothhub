@@ -68,6 +68,7 @@ export function ProductSummary({ product, bottomPadding = Spacing.three }: Produ
           uri={cover}
           width={THUMB_SIZE}
           tone={toneOf(product.colors)}
+          thumbhash={product.coverThumbhash}
           preview={false}
           // Portrait product shots: the upper part holds the neckline and
           // embroidery, which is what identifies the outfit in a circle.

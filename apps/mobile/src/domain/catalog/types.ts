@@ -37,6 +37,8 @@ export type Product = {
   title: string;
 
   images: string[];
+  /** ThumbHash of the first photo, shown the instant a card appears; null until the API has made one. */
+  coverThumbhash: string | null;
 
   /** Whole rupees. */
   price: number;

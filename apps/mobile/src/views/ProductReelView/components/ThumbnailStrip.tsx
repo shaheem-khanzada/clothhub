@@ -14,12 +14,14 @@ type ThumbnailStripProps = {
   images: string[];
   /** The product's colour swatch, tinting tiles while they load. */
   tone: string | null;
+  /** Shows the first tile at once. */
+  coverThumbhash: string | null;
   index: number;
   onSelect: (index: number) => void;
 };
 
 /** Jump straight to any photo of the current product. */
-export function ThumbnailStrip({ images, tone, index, onSelect }: ThumbnailStripProps) {
+export function ThumbnailStrip({ images, tone, coverThumbhash, index, onSelect }: ThumbnailStripProps) {
   const theme = useTheme();
   const { t } = useTranslation();
 
@@ -49,6 +51,7 @@ export function ThumbnailStrip({ images, tone, index, onSelect }: ThumbnailStrip
               uri={uri}
               width={THUMB_WIDTH}
               tone={tone}
+              thumbhash={imageIndex === 0 ? coverThumbhash : null}
               preview={false}
               style={[StyleSheet.absoluteFill, !selected && styles.unselected]}
             />

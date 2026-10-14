@@ -223,7 +223,13 @@ export class CatalogService {
 
     const [images, variants] = await Promise.all([
       this.db
-        .select()
+        .select({
+          productId: productImages.productId,
+          url: productImages.url,
+          width: productImages.width,
+          height: productImages.height,
+          thumbhash: productImages.thumbhash,
+        })
         .from(productImages)
         .where(inArray(productImages.productId, ids))
         .orderBy(asc(productImages.productId), asc(productImages.position)),
@@ -261,6 +267,7 @@ export class CatalogService {
           url: image.url,
           width: image.width,
           height: image.height,
+          thumbhash: image.thumbhash,
         })),
         price,
         priceMax: Math.max(price, toMajor(row.priceMaxMinor)),

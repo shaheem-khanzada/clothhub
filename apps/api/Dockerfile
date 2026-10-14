@@ -1,7 +1,8 @@
-# ClothHub API — one image, three commands:
-#   node dist/index.js        HTTP server (default)
-#   node dist/migrate.js      apply database migrations (Coolify pre-deploy)
-#   node dist/jobs/ingest.js  scraper → catalog sync (Coolify scheduled task)
+# ClothHub API — one image, four commands:
+#   node dist/index.js              HTTP server (default)
+#   node dist/migrate.js            apply database migrations (Coolify pre-deploy)
+#   node dist/jobs/ingest.js        scraper → catalog sync (Coolify scheduled task)
+#   node dist/jobs/placeholders.js  ThumbHash previews for cover photos (after ingest)
 #
 # Build from the repository root:
 #   docker build -f apps/api/Dockerfile -t clothhub-api .

@@ -2,9 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { SilkSheen } from '@/components/catalog/SilkSheen';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Radii, Spacing } from '@/constants/theme';
-
-import { PRODUCT_IMAGE_ASPECT_RATIO } from './ProductCard';
+import { ProductGrid, Radii, Spacing } from '@/constants/theme';
 
 type ProductCardSkeletonProps = {
   width: number;
@@ -25,7 +23,7 @@ export function ProductCardSkeleton({ width }: ProductCardSkeletonProps) {
 
 const styles = StyleSheet.create({
   image: {
-    aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO,
+    aspectRatio: ProductGrid.imageAspectRatio,
     borderRadius: Radii.image,
     overflow: 'hidden',
   },

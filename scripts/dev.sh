@@ -9,7 +9,7 @@
 #   bash scripts/dev.sh --reimport       reload the scraper dump and re-run the import
 #   bash scripts/dev.sh --dump <file>    use this scraper dump (default: newest
 #                                        ~/Downloads/mysql-dump-clothhub-prod-db-*.dmp)
-#   bash scripts/dev.sh --stop           stop the API started by this script
+#   bash scripts/dev.sh --stop           stop the API (and photo placeholders) started by this script
 #
 # MySQL comes from, in order: a server already listening on 127.0.0.1:3306,
 # Docker (docker compose), or Homebrew (installs mysql@8.4).
@@ -22,6 +22,8 @@ cd "$ROOT"
 STATE_DIR="$ROOT/.dev"
 API_LOG="$STATE_DIR/api.log"
 API_PID="$STATE_DIR/api.pid"
+PLACEHOLDERS_LOG="$STATE_DIR/placeholders.log"
+PLACEHOLDERS_PID="$STATE_DIR/placeholders.pid"
 mkdir -p "$STATE_DIR"
 
 PLATFORM=ios
@@ -45,6 +47,10 @@ while [[ $# -gt 0 ]]; do
         done
       done
       rm -f "$API_PID"
+      if [[ -f "$PLACEHOLDERS_PID" ]] && kill "$(cat "$PLACEHOLDERS_PID")" 2>/dev/null; then
+        echo "Photo placeholders stopped (the next run carries on where this one stopped)."
+      fi
+      rm -f "$PLACEHOLDERS_PID"
       [[ "$stopped" -eq 1 ]] && echo "API stopped." || echo "No API started by this script is running."
       exit 0
       ;;
@@ -185,6 +191,18 @@ fi
 
 LISTED="$(app_sql -N -e "SELECT COUNT(*) FROM \`$DB_NAME\`.products WHERE listed")"
 note "$LISTED products in the app."
+
+# ---------------------------------------------------------------------------
+# ThumbHash previews for product photos. The first run downloads a tiny copy
+# of every cover (about 40 minutes), so it runs in the background; photos
+# without one simply load with the blurred preview meanwhile.
+MISSING="$(app_sql -N -e "SELECT COUNT(*) FROM \`$DB_NAME\`.products p JOIN \`$DB_NAME\`.product_images i ON i.product_id = p.id AND i.position = 0 WHERE p.listed AND i.thumbhash IS NULL")"
+if [[ "$MISSING" -gt 0 ]] && ! { [[ -f "$PLACEHOLDERS_PID" ]] && kill -0 "$(cat "$PLACEHOLDERS_PID")" 2>/dev/null; }; then
+  bold "Photo placeholders"
+  note "$MISSING covers without a ThumbHash; making them in the background (log: .dev/placeholders.log)."
+  nohup npm run placeholders -w @clothhub/api --silent >"$PLACEHOLDERS_LOG" 2>&1 </dev/null &
+  echo $! >"$PLACEHOLDERS_PID"
+fi
 
 # ---------------------------------------------------------------------------
 bold "Starting the API"

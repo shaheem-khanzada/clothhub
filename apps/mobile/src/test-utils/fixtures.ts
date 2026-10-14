@@ -40,8 +40,8 @@ export function aProduct(overrides: Partial<ProductResponse> = {}): ProductRespo
     title: 'Printed Lawn Suit 3 Piece',
     sku: 'SP-12875',
     images: [
-      { url: 'https://cdn.shopify.com/s/files/a.jpg', width: 800, height: 1160 },
-      { url: 'https://cdn.shopify.com/s/files/b.jpg', width: 800, height: 1160 },
+      { url: 'https://cdn.shopify.com/s/files/a.jpg', width: 800, height: 1160, thumbhash: '1QcSHQRnh493V4dIh4eXh1h4kJUI' },
+      { url: 'https://cdn.shopify.com/s/files/b.jpg', width: 800, height: 1160, thumbhash: null },
     ],
     price: 4490,
     priceMax: 4490,

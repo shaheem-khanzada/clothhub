@@ -35,6 +35,28 @@ describe('GET /openapi.json', () => {
   });
 });
 
+describe('transport', () => {
+  it('gzips responses for clients that accept it', async () => {
+    const response = await app.request('/openapi.json', { headers: { 'Accept-Encoding': 'gzip' } });
+
+    expect(response.headers.get('Content-Encoding')).toBe('gzip');
+    const body = response.body?.pipeThrough(new DecompressionStream('gzip'));
+    expect(await new Response(body).json()).toMatchObject({ openapi: '3.1.0' });
+  });
+
+  it('answers 304 without a body when the client already has this version', async () => {
+    const first = await app.request('/v1/brands');
+    const tag = first.headers.get('ETag');
+
+    expect(tag).toBeTruthy();
+
+    const second = await app.request('/v1/brands', { headers: { 'If-None-Match': tag ?? '' } });
+
+    expect(second.status).toBe(304);
+    expect(await second.text()).toBe('');
+  });
+});
+
 describe('unknown routes', () => {
   it('answer 404 in the standard error shape', async () => {
     const response = await app.request('/nope');

@@ -14,6 +14,9 @@ export const STORAGE_KEYS = {
 
   /** The products the user has saved with the heart. Kept on the device only in V1. */
   FAVORITES: 'favorites',
+
+  /** The catalogue last seen, for an instant cold start (see `lib/queryPersistence.ts`). */
+  QUERY_CACHE: 'queryCache',
 } as const;
 
 /** MMKV behind Zustand's `persist` middleware — synchronous, so stores hydrate before the first frame. */

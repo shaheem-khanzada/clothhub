@@ -12,7 +12,7 @@
  *
  * Layout, one folder per API module:
  *   src/common/   errors
- *   src/catalog/  brands, products, filters, facets
+ *   src/catalog/  brands, products, filters, facets, image URLs
  *   src/me/       the signed-in user's saves and collections (after sign-in)
  *
  * Shipped as TypeScript source: Metro and the API's bundler compile it
@@ -21,5 +21,6 @@
  */
 
 export * from './catalog/brands';
+export * from './catalog/images';
 export * from './catalog/products';
 export * from './common/errors';

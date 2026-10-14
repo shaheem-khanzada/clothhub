@@ -1,6 +1,7 @@
+import { LegendList } from '@legendapp/list/react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PageGutter, Spacing } from '@/constants/theme';
@@ -8,7 +9,7 @@ import type { Brand } from '@/domain/catalog/types';
 import { useBrandsQuery } from '@/domain/catalog/useBrandsQuery';
 import { useTheme } from '@/hooks/useTheme';
 
-import { BrandCard } from './components/BrandCard';
+import { BRAND_CARD_HEIGHT, BrandCard } from './components/BrandCard';
 import { Empty } from './components/Empty';
 import { ListHeader } from './components/ListHeader';
 
@@ -55,14 +56,14 @@ export default function BrandListView() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <FlatList
+      <LegendList
         data={visibleBrands}
         keyExtractor={(brand) => brand.id}
-        renderItem={({ item }) => (
-          <BrandCard brand={item} onPress={() => handleBrandPress(item)} />
-        )}
+        recycleItems
+        estimatedItemSize={BRAND_CARD_HEIGHT + Spacing.three}
+        renderItem={({ item }) => <BrandCard brand={item} onPress={handleBrandPress} />}
         ListHeaderComponent={<ListHeader query={query} onQueryChange={setQuery} />}
-        ListEmptyComponent={renderEmpty}
+        ListEmptyComponent={renderEmpty()}
         ItemSeparatorComponent={Separator}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"

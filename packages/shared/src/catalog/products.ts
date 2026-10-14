@@ -36,6 +36,12 @@ export const ProductImageSchema = z
     url: z.url(),
     width: z.int().positive().nullable(),
     height: z.int().positive().nullable(),
+    /**
+     * ThumbHash (base64) of the photo: a ~25-byte blurred preview the app
+     * decodes on the device, so a card shows the outfit before any download.
+     * Generated for covers (the first image) after import; null until then.
+     */
+    thumbhash: z.string().nullable(),
   })
   .meta({ id: 'ProductImage' });
 

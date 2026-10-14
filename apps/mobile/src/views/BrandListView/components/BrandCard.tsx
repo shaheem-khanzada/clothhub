@@ -16,7 +16,8 @@ export const BRAND_CARD_HEIGHT = 216;
 
 type BrandCardProps = {
   brand: Brand;
-  onPress: () => void;
+  /** Takes the brand, so the list can pass one stable callback to every card. */
+  onPress: (brand: Brand) => void;
 };
 
 export function BrandCard({ brand, onPress }: BrandCardProps) {
@@ -28,7 +29,7 @@ export function BrandCard({ brand, onPress }: BrandCardProps) {
 
   const handlePress = () => {
     feedback.tap();
-    onPress();
+    onPress(brand);
   };
 
   return (

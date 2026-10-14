@@ -171,6 +171,10 @@ export const productImages = mysqlTable(
     url: varchar({ length: 1024 }).notNull(),
     width: smallint({ unsigned: true }),
     height: smallint({ unsigned: true }),
+    /** Base64 ThumbHash of the photo, filled by the placeholders job (covers only). */
+    thumbhash: varchar({ length: 64 }),
+    /** The last time the placeholders job could not fetch or decode this photo; retried later. */
+    thumbhashFailedAt: datetime({ fsp: 3 }),
   },
   (table) => [
     primaryKey({ name: 'pk_product_images', columns: [table.productId, table.position] }),

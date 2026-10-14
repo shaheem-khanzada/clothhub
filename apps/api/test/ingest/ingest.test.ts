@@ -182,6 +182,39 @@ describe('later (incremental) runs', () => {
     expect(after).toMatchObject({ id: before?.id, firstSeenAt: before?.firstSeenAt, name: 'Renamed Suit' });
   });
 
+  it('keeps a photo\'s placeholder when the product changes but the photo does not', async () => {
+    const photo = (src: string) => ({ src, width: 800, height: 1200 });
+    await insertScraperProduct(scraperPool, {
+      id: '20_1',
+      brandId: 20,
+      images: [photo('https://cdn.shopify.com/s/a.jpg'), photo('https://cdn.shopify.com/s/b.jpg')],
+    });
+    await ingest().run();
+    const { id } = (await productBySource('20_1'))!;
+    await db.update(productImages).set({ thumbhash: 'HASH-A' }).where(eq(productImages.productId, id));
+
+    // The price changes and the second photo is swapped for a new one.
+    await insertScraperProduct(scraperPool, {
+      id: '20_1',
+      brandId: 20,
+      price: 3990,
+      images: [photo('https://cdn.shopify.com/s/a.jpg'), photo('https://cdn.shopify.com/s/c.jpg')],
+      revision: 1,
+      updatedAt: '2026-10-09 06:30:00.000',
+    });
+    await ingest().run();
+
+    const images = await db
+      .select({ url: productImages.url, thumbhash: productImages.thumbhash })
+      .from(productImages)
+      .where(eq(productImages.productId, id))
+      .orderBy(asc(productImages.position));
+    expect(images).toEqual([
+      { url: 'https://cdn.shopify.com/s/a.jpg', thumbhash: 'HASH-A' },
+      { url: 'https://cdn.shopify.com/s/c.jpg', thumbhash: null },
+    ]);
+  });
+
   it('skips products whose content has not changed, even on a full run', async () => {
     await insertScraperProduct(scraperPool, { id: '20_1', brandId: 20 });
     await ingest().run();
