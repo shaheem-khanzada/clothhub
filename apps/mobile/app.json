@@ -53,6 +53,13 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "icon": "./assets/images/icon.png"
+    "icon": "./assets/images/icon.png",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2958115c-b524-4df9-8195-4c0af1ee851d"
+      }
+    },
+    "owner": "shaheemkz"
   }
 }
