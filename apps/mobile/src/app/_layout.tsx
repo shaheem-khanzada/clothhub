@@ -1,19 +1,31 @@
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import '@/i18next/i18next';
 
+import { LaunchSplash } from '@/components/brand/LaunchSplash';
 import { useTheme } from '@/hooks/useTheme';
 import { queryClient } from '@/lib/queryClient';
 import { queryPersistOptions } from '@/lib/queryPersistence';
 
 const isIos = Platform.OS === 'ios';
 
+// The native launch screen stays up until LaunchSplash has drawn its first
+// (identical) frame and hands over; a short fade hides any rounding.
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Already hidden (fast refresh): nothing to keep up.
+});
+SplashScreen.setOptions({ duration: 200, fade: true });
+
 export default function RootLayout() {
   const theme = useTheme();
+  // Once per launch; the app renders and loads beneath it meanwhile.
+  const [launching, setLaunching] = useState(true);
 
   // Native chrome (headers, back buttons, search bars) reads its colours from
   // the navigation theme, so it is derived from the app's tokens.
@@ -73,6 +85,8 @@ export default function RootLayout() {
               }}
             />
           </Stack>
+
+          {launching ? <LaunchSplash onFinish={() => setLaunching(false)} /> : null}
         </ThemeProvider>
       </PersistQueryClientProvider>
     </GestureHandlerRootView>
