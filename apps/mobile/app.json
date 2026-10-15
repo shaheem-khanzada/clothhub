@@ -8,11 +8,14 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0B0B0C",
     "ios": {
-      "bundleIdentifier": "codes.furqan.clothhub",
-      "supportsTablet": false
+      "bundleIdentifier": "com.clothhub.digital",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "codes.furqan.clothhub",
+      "package": "com.clothhub.digital",
       "predictiveBackGestureEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",

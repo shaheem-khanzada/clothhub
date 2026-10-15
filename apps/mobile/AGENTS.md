@@ -51,7 +51,7 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - The API contract lives in `@clothhub/shared`. `api.ts` parses every response with those schemas, then `mapper.ts` turns it into `Brand` / `Product`.
 - Screens only see `Brand` and `Product` (`domain/catalog/types.ts`), never the API shapes.
 - Requests go through `apiClient` (`src/axios`). Failures arrive as `ApiError` with the API's `code` (`not_found`, `invalid_request`) or `network_error` / `timeout`. React Query retries only network and server errors (`lib/queryClient.ts`).
-- The API URL comes from `EXPO_PUBLIC_API_URL` (`.env.local`, see `.env.example`).
+- The API URL comes from `EXPO_PUBLIC_API_URL`: `.env.local` on your computer (see `.env.example`), the build profile's `env` in `eas.json` for TestFlight and store builds (see `docs/release-ios.md`).
 - Text clean-up (names, sizes, fabric, description parts) happens in the API's ingest job, not here.
 
 ### UI

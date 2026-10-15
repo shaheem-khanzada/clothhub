@@ -17,6 +17,7 @@ docs/
   data-model.md    database design, now and for the social features
   scraper-data.md  what the scraper's data looks like, and the decisions it led to
   deployment.md    Coolify: development and production, step by step
+  release-ios.md   TestFlight builds with EAS
 scripts/
   load-scraper-dump.sh   load a scraper database dump into local MySQL
   scan-scraper-db.mjs    export the scraper DB's structure + sample rows (read-only)
