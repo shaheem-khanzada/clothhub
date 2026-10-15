@@ -17,6 +17,12 @@ const en = {
       },
     },
 
+    brand: {
+      name: 'ClothHub',
+      /** Read by screen readers while the launch animation plays; tapping skips it. */
+      launchLabel: 'ClothHub. Tap to skip.',
+    },
+
     catalog: {
       favorites: {
         save: 'Save',

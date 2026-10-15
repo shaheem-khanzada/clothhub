@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
+  <radialGradient id="bg" cx="50%" cy="42%" r="78%">
+    <stop offset="0" stop-color="#26211F"/><stop offset="0.5" stop-color="#141213"/><stop offset="1" stop-color="#0B0B0C"/>
+  </radialGradient>
+  <linearGradient id="silk" gradientUnits="userSpaceOnUse"
+    x1="108" y1="-8" x2="588" y2="522">
+    <stop offset="0" stop-color="#FFF6EA"/><stop offset="0.42" stop-color="#EEC9AE"/><stop offset="0.78" stop-color="#D99A88"/><stop offset="1" stop-color="#B9706F"/>
+  </linearGradient><filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="30"/></filter></defs><rect width="1024" height="1024" fill="url(#bg)"/><g transform="translate(212 332.0625) scale(0.9375)">
+  <g fill="none" stroke="#E39A86" stroke-width="56" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.38" filter="url(#glow)">
+    <path d="M390.48,60.86 A92,92 0 1,0 320,212"/><path d="M320,212 C240,238 128,308 28,390"/><path d="M320,212 C400,238 512,308 612,390"/>
+  </g>
+  <g fill="none" stroke="url(#silk)" stroke-width="56" stroke-linecap="round" stroke-linejoin="round" >
+    <path d="M390.48,60.86 A92,92 0 1,0 320,212"/><path d="M320,212 C240,238 128,308 28,390"/><path d="M320,212 C400,238 512,308 612,390"/>
+  </g></g></svg>

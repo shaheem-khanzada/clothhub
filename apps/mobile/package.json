@@ -7,9 +7,10 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p scripts",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "brand:assets": "tsx scripts/brand-assets.ts"
   },
   "dependencies": {
     "@clothhub/shared": "*",
@@ -62,7 +63,9 @@
     "jest": "^29.7.0",
     "jest-expo": "~57.0.6",
     "react-native-svg-transformer": "^1.5.3",
+    "sharp": "^0.35.5",
     "test-renderer": "^1.3.1",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   }
 }

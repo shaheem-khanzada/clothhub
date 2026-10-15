@@ -23,6 +23,7 @@ src/
   components/
     ui/           Design-system primitives (Text, Button, Chip, Switch, RangeSlider…).
     catalog/      Catalog pieces shared by more than one screen.
+    brand/        The ClothHub mark (logoGeometry.ts), BrandMark, and the animated LaunchSplash.
   domain/catalog/ types, mapper, api, queryKeys, query hooks, browse store.
   domain/auth/    the sign-in seam: useSession(), useRequireAccount().
   domain/favorites/ the hearts, on the device (Zustand + MMKV).
@@ -53,6 +54,14 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - Requests go through `apiClient` (`src/axios`). Failures arrive as `ApiError` with the API's `code` (`not_found`, `invalid_request`) or `network_error` / `timeout`. React Query retries only network and server errors (`lib/queryClient.ts`).
 - The API URL comes from `EXPO_PUBLIC_API_URL`: `.env.local` on your computer (see `.env.example`), the build profile's `env` in `eas.json` for TestFlight and store builds (see `docs/release-ios.md`).
 - Text clean-up (names, sizes, fabric, description parts) happens in the API's ingest job, not here.
+
+### Brand
+
+- The mark (a hanger whose hook is a "C") is described once, in `src/components/brand/logoGeometry.ts`.
+  - `npm run brand:assets -w @clothhub/mobile` renders the app icon, the Android adaptive and themed icons, the native launch image and `assets/brand/*.svg` from it. Change the geometry, re-run, commit the images; never edit them by hand.
+  - `assets/brand/mark.svg` is the vector to use elsewhere, e.g. in Apple's Icon Composer for a Liquid Glass icon.
+- `LaunchSplash` takes over from the native launch screen on an identical frame, plays for about 1.7 s (swing, light along the hanger, the name), then fades into the app. A tap skips it; Reduce Motion shortens it to a fade.
+  - `LAUNCH_MARK_SIZE` must equal `imageWidth` of `expo-splash-screen` in `app.json`; a test checks it.
 
 ### UI
 
