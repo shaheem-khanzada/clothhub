@@ -9,7 +9,10 @@
     "backgroundColor": "#0B0B0C",
     "ios": {
       "bundleIdentifier": "codes.furqan.clothhub",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "codes.furqan.clothhub",
