@@ -30,6 +30,9 @@ export function createQueryClient() {
         retry: shouldRetry,
         // The catalog changes when the import job runs, a few times a day.
         staleTime: 5 * 60 * 1000,
+        // Lists visited in the last hour stay in memory, and so in the cache
+        // saved for the next cold start.
+        gcTime: 60 * 60 * 1000,
       },
       mutations: {
         retry: 0,

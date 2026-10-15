@@ -1,11 +1,10 @@
+import { LegendList } from '@legendapp/list/react-native';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  FlatList,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -16,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ErrorState } from '@/components/ErrorState';
-import { Spacing } from '@/constants/theme';
+import { Spacing, productCardWidth } from '@/constants/theme';
 import type { Product } from '@/domain/catalog/types';
 import { useBrandQuery } from '@/domain/catalog/useBrandsQuery';
 import { useBrowseParams } from '@/domain/catalog/useBrowseStore';
@@ -25,7 +24,7 @@ import { useProductQuery } from '@/domain/catalog/useProductQuery';
 import { useProductsQuery } from '@/domain/catalog/useProductsQuery';
 import { useTheme } from '@/hooks/useTheme';
 import { feedback } from '@/lib/feedback';
-import { sizedImageUrl } from '@/lib/images';
+import { photoUrl } from '@/lib/images';
 
 import { ActionRail } from './components/ActionRail';
 import { GestureGuide } from './components/GestureGuide';
@@ -34,9 +33,7 @@ import { ReelItem, STRIP_SPACE } from './components/ReelItem';
 import { ReelToolbar } from './components/ReelToolbar';
 import { openInBrowser, shareProduct } from './productActions';
 import { useGestureGuide } from './useGestureGuide';
-
-/** How many products ahead get their first photo warmed up. */
-const PREFETCH_AHEAD = 2;
+import { useReelPrefetch } from './useReelPrefetch';
 
 /** Gap between the safe area and the close / share / more buttons. */
 const TOP_BAR_OFFSET = Spacing.twoAndOne;
@@ -60,7 +57,7 @@ export default function ProductReelView() {
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { width, scale } = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
   const { brandId, productId } = useLocalSearchParams<{
     brandId: string;
@@ -108,20 +105,12 @@ export default function ProductReelView() {
   const liked = useIsFavorite(activeProduct?.id ?? '');
   const toggleFavorite = useToggleFavorite();
 
-  // Warm up the next few products' first photo so a swipe never lands on grey.
-  useEffect(() => {
-    const upcoming = products
-      .slice(activeIndex + 1, activeIndex + 1 + PREFETCH_AHEAD)
-      .map((product) => product.images[0])
-      .filter((uri): uri is string => Boolean(uri))
-      .map((uri) => sizedImageUrl(uri, width * scale));
+  useReelPrefetch(products, activeIndex, width);
 
-    if (upcoming.length > 0) {
-      Image.prefetch(upcoming).catch(() => {
-        // Prefetching is best-effort; the photo still loads when shown.
-      });
-    }
-  }, [products, activeIndex, width, scale]);
+  // The product the user tapped opens on the photo its card was showing — a
+  // file already in the cache — and sharpens from there.
+  const openedCover = needsFallback ? null : listed[startIndex]?.images[0];
+  const openedCoverUri = openedCover ? photoUrl(openedCover, productCardWidth(width)) : null;
 
   const handleLayout = (event: LayoutChangeEvent) => {
     setHeight(event.nativeEvent.layout.height);
@@ -210,7 +199,7 @@ export default function ProductReelView() {
   return (
     <View onLayout={handleLayout} style={[styles.container, { backgroundColor: theme.mediaBackground }]}>
       {height !== null ? (
-        <FlatList
+        <LegendList
           data={products}
           keyExtractor={(product) => product.id}
           pagingEnabled
@@ -218,10 +207,9 @@ export default function ProductReelView() {
           decelerationRate="fast"
           showsVerticalScrollIndicator={false}
           initialScrollIndex={Math.max(startIndex, 0)}
-          getItemLayout={(_, index) => ({ length: height, offset: height * index, index })}
-          windowSize={3}
-          initialNumToRender={1}
-          maxToRenderPerBatch={2}
+          getFixedItemSize={() => height}
+          // One product above and below stays laid out, so a swipe never shows a gap.
+          drawDistance={height}
           onMomentumScrollEnd={handleMomentumEnd}
           onEndReached={handleEndReached}
           onEndReachedThreshold={2}
@@ -230,9 +218,9 @@ export default function ProductReelView() {
               product={item}
               width={width}
               height={height}
-              pixelRatio={scale}
               topInset={insets.top}
               sheetHeight={sheetHeight}
+              coverPlaceholderUri={item.id === productId ? openedCoverUri : null}
             />
           )}
         />

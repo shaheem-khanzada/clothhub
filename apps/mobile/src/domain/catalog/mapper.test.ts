@@ -33,6 +33,15 @@ describe('mapProduct', () => {
     expect(product.link).toBe('https://saya.pk/products/sp-12875');
   });
 
+  it('keeps the cover photo\'s ThumbHash for an instant preview', () => {
+    expect(mapProduct(aProduct()).coverThumbhash).toBe('1QcSHQRnh493V4dIh4eXh1h4kJUI');
+    expect(mapProduct(aProduct({ images: [] })).coverThumbhash).toBeNull();
+  });
+
+  it('keeps the colour families for tinting and filters', () => {
+    expect(mapProduct(aProduct({ colors: ['red', 'gold'] })).colors).toEqual(['red', 'gold']);
+  });
+
   it('keeps only the sizes that can be bought', () => {
     const product = mapProduct(
       aProduct({

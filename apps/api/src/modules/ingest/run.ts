@@ -1,5 +1,5 @@
-import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
-import type { Pool, PoolConnection } from 'mysql2/promise';
+import { and, desc, eq, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm';
+import type { Pool } from 'mysql2/promise';
 
 import type { Database } from '../../db/client.js';
 import {
@@ -12,6 +12,7 @@ import {
   products,
   productVariants,
 } from '../../db/schema/index.js';
+import { withAdvisoryLock } from '../../lib/advisoryLock.js';
 import { uuidv7 } from '../../lib/ids.js';
 import type { Logger } from '../../lib/logger.js';
 import { isListed, refreshListed } from '../catalog/scope.js';
@@ -120,6 +121,10 @@ const UPDATED_PRODUCT_COLUMNS = [
   'contentHash',
 ] as const satisfies readonly (keyof typeof products.$inferInsert)[];
 
+type ImageRow = typeof productImages.$inferInsert;
+
+const placeholderKey = (productId: string, url: string) => `${productId} ${url}`;
+
 const toSnakeCase = (key: string) => key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 
 /** `ON DUPLICATE KEY UPDATE column = VALUES(column)` for a multi-row upsert. */
@@ -143,33 +148,11 @@ export class Ingest {
   }
 
   /**
-   * Runs one import. A MySQL advisory lock named after the database keeps
-   * runs from overlapping, while dev and production imports on the same
-   * server never block each other.
+   * Runs one import. An advisory lock keeps runs from overlapping, while dev
+   * and production imports on the same server never block each other.
    */
-  async run(mode: IngestMode = 'auto'): Promise<IngestResult> {
-    const lock = await this.target.pool.getConnection();
-
-    try {
-      const [[acquired]] = (await lock.query(
-        "SELECT GET_LOCK(concat('clothhub_ingest:', database()), 0) AS ok",
-      )) as unknown as [{ ok: number }[]];
-      if (!acquired || acquired.ok !== 1) {
-        throw new Error('Another ingest run is in progress.');
-      }
-
-      return await this.runLocked(mode);
-    } finally {
-      await this.releaseLock(lock);
-    }
-  }
-
-  private async releaseLock(lock: PoolConnection) {
-    try {
-      await lock.query("SELECT RELEASE_LOCK(concat('clothhub_ingest:', database()))");
-    } finally {
-      lock.release();
-    }
+  run(mode: IngestMode = 'auto'): Promise<IngestResult> {
+    return withAdvisoryLock(this.target.pool, 'ingest', () => this.runLocked(mode));
   }
 
   private async runLocked(requestedMode: IngestMode): Promise<IngestResult> {
@@ -401,9 +384,10 @@ export class Ingest {
     const existing = new Map<string, ExistingProduct>(existingRows.map((row) => [row.sourceProductId, row]));
 
     const productRows: (typeof products.$inferInsert)[] = [];
-    const imageRows: (typeof productImages.$inferInsert)[] = [];
+    const imageRows: ImageRow[] = [];
     const variantRows: (typeof productVariants.$inferInsert)[] = [];
     const changedIds: string[] = [];
+    const updatedIds: string[] = [];
     const unchangedIds: string[] = [];
 
     for (const source of batch) {
@@ -431,6 +415,7 @@ export class Ingest {
       imageRows.push(...transformed.images.map((image) => ({ ...image, productId: id })));
       variantRows.push(...transformed.variants.map((variant) => ({ ...variant, productId: id })));
       changedIds.push(id);
+      if (current) updatedIds.push(id);
 
       if (!current) stats.created += 1;
       else stats.updated += 1;
@@ -438,6 +423,14 @@ export class Ingest {
       if (current && current.retiredAt !== null && !retired) stats.restored += 1;
       if (retired && (!current || current.retiredAt === null)) stats.retired += 1;
     }
+
+    // Changed products get their images rewritten; a photo whose URL is the
+    // same keeps the placeholder already made for it.
+    const placeholders = await this.existingPlaceholders(updatedIds);
+    const imagesToWrite = imageRows.map((image) => ({
+      ...image,
+      ...placeholders.get(placeholderKey(image.productId, image.url)),
+    }));
 
     await db.transaction(async (tx) => {
       if (productRows.length > 0) {
@@ -447,7 +440,7 @@ export class Ingest {
           await tx.delete(productImages).where(inArray(productImages.productId, ids));
           await tx.delete(productVariants).where(inArray(productVariants.productId, ids));
         }
-        for (const rows of chunk(imageRows, 2000)) await tx.insert(productImages).values(rows);
+        for (const rows of chunk(imagesToWrite, 2000)) await tx.insert(productImages).values(rows);
         for (const rows of chunk(variantRows, 2000)) await tx.insert(productVariants).values(rows);
       }
 
@@ -455,6 +448,34 @@ export class Ingest {
         await tx.update(products).set({ lastSeenAt: now }).where(inArray(products.id, ids));
       }
     });
+  }
+
+  /** ThumbHash state of these products' current photos, by `placeholderKey`. */
+  private async existingPlaceholders(productIds: string[]) {
+    const placeholders = new Map<string, Pick<ImageRow, 'thumbhash' | 'thumbhashFailedAt'>>();
+
+    for (const ids of chunk(productIds, 1000)) {
+      const rows = await this.target.db
+        .select({
+          productId: productImages.productId,
+          url: productImages.url,
+          thumbhash: productImages.thumbhash,
+          thumbhashFailedAt: productImages.thumbhashFailedAt,
+        })
+        .from(productImages)
+        .where(
+          and(
+            inArray(productImages.productId, ids),
+            or(isNotNull(productImages.thumbhash), isNotNull(productImages.thumbhashFailedAt)),
+          ),
+        );
+
+      for (const { productId, url, ...placeholder } of rows) {
+        placeholders.set(placeholderKey(productId, url), placeholder);
+      }
+    }
+
+    return placeholders;
   }
 
   /** Products the scraper no longer lists as live (removed, deactivated or deleted). */

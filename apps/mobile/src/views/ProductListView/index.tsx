@@ -1,10 +1,10 @@
+import { LegendList } from '@legendapp/list/react-native';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  FlatList,
   Platform,
   RefreshControl,
   StyleSheet,
@@ -15,11 +15,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { SearchInput } from '@/components/ui/SearchInput';
-import { PageGutter, Spacing } from '@/constants/theme';
+import { PageGutter, ProductGrid, Spacing, productCardWidth } from '@/constants/theme';
 import { DEFAULT_FILTERS, countActiveFilters } from '@/domain/catalog/filters';
 import type { Product } from '@/domain/catalog/types';
 import { useBrandQuery } from '@/domain/catalog/useBrandsQuery';
 import { useBrowseParams, useBrowseStore } from '@/domain/catalog/useBrowseStore';
+import { catalogKeys } from '@/domain/catalog/queryKeys';
 import { useProductsQuery } from '@/domain/catalog/useProductsQuery';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -29,10 +30,15 @@ import { HeaderTitle } from './components/HeaderTitle';
 import { ProductCard } from './components/ProductCard';
 import { SORT_SHEET, SortSheet } from './components/SortSheet';
 import { Toolbar } from './components/Toolbar';
+import { usePrefetchNextPage } from './usePrefetchNextPage';
 
-const COLUMN_GAP = 12;
-const ROW_GAP = 20;
 const SEARCH_DEBOUNCE_MS = 300;
+
+/** Name, price and badge under each card's photo, for LegendList's first layout. */
+const CARD_INFO_HEIGHT = 84;
+
+/** How far below the screen cards are already laid out, so their photos start loading early. */
+const DRAW_DISTANCE = 600;
 
 // iOS gets the native search bar in the navigation bar. Android's native one
 // overflows the header, so Android searches from a field at the top of the list.
@@ -43,7 +49,7 @@ export default function ProductListView() {
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { width, scale } = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
   const { brandId } = useLocalSearchParams<{ brandId: string }>();
 
@@ -70,7 +76,13 @@ export default function ProductListView() {
   const activeFilterCount = countActiveFilters(params.filters);
   const hasNarrowing = activeFilterCount > 0 || params.search.trim().length > 0;
 
-  const cardWidth = (width - PageGutter * 2 - COLUMN_GAP) / 2;
+  const cardWidth = productCardWidth(width);
+
+  usePrefetchNextPage(
+    isPlaceholderData ? [] : products,
+    cardWidth,
+    JSON.stringify(catalogKeys.products(params)),
+  );
 
   const handleSearchChange = useDebouncedCallback((text: string) => {
     setSearch(brandId, text);
@@ -110,7 +122,7 @@ export default function ProductListView() {
 
   const renderEmpty = () => {
     if (isPending) {
-      return <Empty state="loading" cardWidth={cardWidth} gap={COLUMN_GAP} />;
+      return <Empty state="loading" cardWidth={cardWidth} gap={ProductGrid.columnGap} />;
     }
 
     if (isError) {
@@ -141,18 +153,17 @@ export default function ProductListView() {
         }}
       />
 
-      <FlatList
+      <LegendList
         data={products}
         keyExtractor={(product) => product.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
+        numColumns={ProductGrid.columns}
+        columnWrapperStyle={{ columnGap: ProductGrid.columnGap, rowGap: ProductGrid.rowGap }}
+        // Cards hold no state of their own, so their views are reused as the grid scrolls.
+        recycleItems
+        estimatedItemSize={cardWidth / ProductGrid.imageAspectRatio + CARD_INFO_HEIGHT}
+        drawDistance={DRAW_DISTANCE}
         renderItem={({ item }) => (
-          <ProductCard
-            product={item}
-            width={cardWidth}
-            pixelRatio={scale}
-            onPress={() => handleProductPress(item)}
-          />
+          <ProductCard product={item} width={cardWidth} onPress={handleProductPress} />
         )}
         ListHeaderComponent={
           <>
@@ -175,7 +186,7 @@ export default function ProductListView() {
             />
           </>
         }
-        ListEmptyComponent={renderEmpty}
+        ListEmptyComponent={renderEmpty()}
         ListFooterComponent={
           isFetchingNextPage ? (
             <ActivityIndicator color={theme.textSecondary} style={styles.footer} />
@@ -230,11 +241,6 @@ const styles = StyleSheet.create({
 
   search: {
     marginBottom: Spacing.twoAndOne,
-  },
-
-  row: {
-    gap: COLUMN_GAP,
-    marginBottom: ROW_GAP,
   },
 
   footer: {

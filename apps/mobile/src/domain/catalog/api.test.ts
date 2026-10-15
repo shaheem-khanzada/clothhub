@@ -29,6 +29,19 @@ describe('fetchBrands', () => {
 });
 
 describe('fetchProductPage', () => {
+  it('still reads an API from before the newest fields', async () => {
+    const { colors: _colors, images, ...older } = aProduct();
+    const page = aProductPage({
+      products: [{ ...older, images: images.map(({ thumbhash: _thumbhash, ...image }) => image) } as never],
+    });
+    server.onGet('/v1/products').reply(200, page);
+
+    const [product] = (await fetchProductPage({ brandId: 'saya', sort: 'featured', filters: DEFAULT_FILTERS, search: '' }, 1)).products;
+
+    expect(product).toMatchObject({ colors: [], coverThumbhash: null });
+  });
+
+
   it('asks for one page with the current filters and maps the result', async () => {
     const page = aProductPage({ page: 2, total: 41 });
     server.onGet('/v1/products').reply((config) => {

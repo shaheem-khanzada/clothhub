@@ -41,7 +41,7 @@ clothhub/
           ingest/            scraper reader, normalisation rules, run orchestration
           health/
         db/schema/           Drizzle tables (catalog, ingest)
-        jobs/ingest/         the scheduled job's entry point
+        jobs/                the scheduled jobs' entry points (ingest, placeholders)
         lib/                 env, logger, errors, ids (UUIDv7), session
       drizzle/               SQL migrations (committed)
       test/                  integration tests (MySQL) and fixtures
@@ -109,10 +109,11 @@ full catalogue (124k listed products).
 
 ## 5. Docker & Coolify
 
-- **One Dockerfile** (multi-stage, small production image). The same image runs three commands:
+- **One Dockerfile** (multi-stage, small production image). The same image runs four commands:
   - `node dist/index.js` — the HTTP server
   - `node dist/migrate.js` — applies migrations (Coolify pre-deployment command)
   - `node dist/jobs/ingest.js` — the import (Coolify scheduled task)
+  - `node dist/jobs/placeholders.js` — ThumbHash previews for cover photos (same scheduled task, after the import)
 - **Local:** `npm run db:up` starts MySQL 8.4; `npm run scraper:load <dump>` loads a scraper dump; `npm run
   ingest` fills the catalogue; `npm run api` serves it.
 - **Coolify:** two API apps (dev, prod) on the scraper's MySQL server, each with its own database and user,

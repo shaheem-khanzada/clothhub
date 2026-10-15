@@ -1,34 +1,27 @@
-import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { DiscountBadge } from '@/components/catalog/DiscountBadge';
 import { LikeButton } from '@/components/catalog/LikeButton';
 import { PriceLine } from '@/components/catalog/PriceLine';
+import { ProductImage } from '@/components/catalog/ProductImage';
 import { Text } from '@/components/ui/Text';
 import { VStack } from '@/components/ui/VStack';
-import { Radii, Spacing, Typography } from '@/constants/theme';
+import { ProductGrid, Radii, Spacing, Typography } from '@/constants/theme';
+import { toneOf } from '@/constants/tones';
 import type { Product } from '@/domain/catalog/types';
 import { useIsFavorite, useToggleFavorite } from '@/domain/favorites/useFavoritesStore';
 import { useTheme } from '@/hooks/useTheme';
-import { sizedImageUrl } from '@/lib/images';
-
-export const PRODUCT_IMAGE_ASPECT_RATIO = 3 / 4;
 
 type ProductCardProps = {
   product: Product;
   /** Rendered width in points, used to request a right-sized photo. */
   width: number;
-  pixelRatio: number;
-  onPress: () => void;
+  /** Takes the product, so the list can pass one stable callback to every card. */
+  onPress: (product: Product) => void;
 };
 
-export function ProductCard({
-  product,
-  width,
-  pixelRatio,
-  onPress,
-}: ProductCardProps) {
+export function ProductCard({ product, width, onPress }: ProductCardProps) {
   const theme = useTheme();
   const { t } = useTranslation();
   const liked = useIsFavorite(product.id);
@@ -40,20 +33,18 @@ export function ProductCard({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={product.title}
-      onPress={onPress}
+      onPress={() => onPress(product)}
       style={({ pressed }) => [{ width }, pressed && styles.pressed]}
     >
       <View style={[styles.imageFrame, { backgroundColor: theme.surface }]}>
-        {cover ? (
-          <Image
-            source={{ uri: sizedImageUrl(cover, width * pixelRatio) }}
-            contentFit="cover"
-            contentPosition="top"
-            transition={200}
-            recyclingKey={product.id}
-            style={StyleSheet.absoluteFill}
-          />
-        ) : null}
+        <ProductImage
+          uri={cover}
+          width={width}
+          tone={toneOf(product.colors)}
+          thumbhash={product.coverThumbhash}
+          recyclingKey={product.id}
+          style={StyleSheet.absoluteFill}
+        />
 
         {!product.inStock ? (
           <View style={[styles.stockLabel, { backgroundColor: theme.scrim }]}>
@@ -93,7 +84,7 @@ const styles = StyleSheet.create({
   },
 
   imageFrame: {
-    aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO,
+    aspectRatio: ProductGrid.imageAspectRatio,
     borderRadius: Radii.image,
     overflow: 'hidden',
   },

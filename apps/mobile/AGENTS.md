@@ -29,7 +29,7 @@ src/
   axios/          the HTTP client and ApiError.
   test-utils/     API response fixtures and a React Query test wrapper.
   constants/      colors, typography, spacing, layout. Import them via '@/constants/theme'.
-  lib/            queryClient, mmkv, formatters, images, feedback (haptics).
+  lib/            queryClient, queryPersistence, mmkv, formatters, images, photoMetrics, feedback (haptics).
 i18next/          i18next setup and the en locale.
 assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name="…" />.
 ```
@@ -41,7 +41,8 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - Server data goes through React Query. Screens never call `api.ts` directly.
 - Client state shared across screens goes in Zustand. Today that is only `useBrowseStore`: per-brand sort, filters and search.
   - The product list and the reel read the same params, so they share one cache entry.
-- MMKV is only for deliberate persistence: "gesture guide seen" and favourites.
+- MMKV is only for deliberate persistence: "gesture guide seen", favourites, and the saved query cache.
+- The brand list and the first page of recently visited product lists are saved to MMKV (`lib/queryPersistence.ts`) for an instant cold start. Bump `QUERY_CACHE_VERSION` when a saved response shape changes.
 - Actions that will belong to an account (saving, collecting) go through `useRequireAccount()` — today it runs them on the device; with sign-in it opens the sign-in sheet first.
 - A sheet keeps its draft state locally and commits it on Apply.
 
@@ -61,7 +62,16 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - Sheets use `@lodev09/react-native-true-sheet`. Present and dismiss them by name.
   - The reel's product sheet stays presented the whole time. Anything that must sit above it renders in `TrueSheetOverlay`.
 - Haptics go through `feedback.*`, named by event (tap, select, toggle, page, unavailable).
-- Product images are resized through `sizedImageUrl(url, px)` (Shopify CDN `width`).
+- Product and brand photos render through `ProductImage`, never `expo-image` directly.
+  - What shows while a photo loads, best first: a copy already shown elsewhere (`placeholderUri`), the API's ThumbHash (`thumbhash`) with a moving `Glint`, or a blurred 32 px preview over the tinted `SilkSheen`. Then the full photo cross-dissolves in.
+  - Pass `tone={toneOf(product.colors)}`, `thumbhash={product.coverThumbhash}` for covers, and `recyclingKey` in recycled lists. Use `preview={false}` for small thumbnails and `density={PhotoDensity.full}` for full-screen photos (everything else is capped at 2×).
+  - Photo URLs come only from `photoUrl()` (`lib/images.ts`): it rounds widths to shared sizes so views reuse cached files. Prefetch with `prefetchPhotos(photoUrl(...))` so a prefetched file is exactly the one a view asks for.
+  - Prefetch only within `usePrefetchBudget()`: far ahead on Wi-Fi, one step on mobile data, nothing offline.
+  - Loading placeholders for photo areas use `SilkSheen`, not the grey `Skeleton`, so the skeleton and the photo share one surface. All sheens run on one shared clock (`sheenClock.ts`).
+  - In development, the Metro log prints a `[photos]` line every 50 photos: cache hits, network timings, size and format. Check it after any change to images.
+- Lists use `LegendList` (`@legendapp/list/react-native`), never `FlatList`.
+  - Pass `recycleItems` when rows hold no state of their own (cards); leave it off for stateful rows (reel items).
+  - Give rows a stable callback that takes the item (`onPress(product)`), not a new arrow per row. React Compiler memoizes the rest; don't add `memo` or `useCallback` by hand.
 - Floating controls over photos use `GlassIconButton`. It renders Liquid Glass on iOS 26 and a frosted disc elsewhere.
 - On iOS, prefer native controls where they give the platform feel:
   - Screen-level buttons go in `Stack.Toolbar` with SF Symbols. Native menus use `Stack.Toolbar.Menu`.

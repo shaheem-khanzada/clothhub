@@ -10,9 +10,13 @@
  * A breaking change therefore fails the typecheck on both sides in the same
  * pull request.
  *
+ * A field added to a response gets a `.default(...)`: an app release can meet
+ * an API that does not send it yet (a local server still running old code, a
+ * rollback, the minutes of a deploy), and must keep working.
+ *
  * Layout, one folder per API module:
  *   src/common/   errors
- *   src/catalog/  brands, products, filters, facets
+ *   src/catalog/  brands, products, filters, facets, image URLs
  *   src/me/       the signed-in user's saves and collections (after sign-in)
  *
  * Shipped as TypeScript source: Metro and the API's bundler compile it
@@ -21,5 +25,6 @@
  */
 
 export * from './catalog/brands';
+export * from './catalog/images';
 export * from './catalog/products';
 export * from './common/errors';

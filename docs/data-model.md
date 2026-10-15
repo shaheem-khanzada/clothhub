@@ -86,7 +86,7 @@ brands ─┬─< products ─┬─< product_images
   - **State:** `in_stock`, `retired_at`, `first_seen_at` (drives "newest"; source dates are unreliable when a brand migrates its store), `last_seen_at`, `source_published_at`, `source_created_at`, `content_hash` (scraper hash + ingest version).
   - **Scope:** `listed` — whether the app shows it today (`modules/catalog/scope.ts`), recomputed by every ingest run.
   - **Source:** `source_url` (the "Visit brand" link), `source_type`, `source_tags`, `search_text`.
-- **product_images**: `product_id`, `position`, `url`, `width`, `height`. *(later: `dominant_color` for placeholders)*
+- **product_images**: `product_id`, `position`, `url`, `width`, `height`, `thumbhash` (base64, covers only; filled by the placeholders job and kept across re-imports while the URL is unchanged), `thumbhash_failed_at` (retried a week later).
 - **product_variants**: `product_id`, `position`, `source_variant_id`, `sku`, `size` (normalised: `S`, `M`, `5-6Y`…), `size_label` (raw), `color`, `color_family`, `price_minor`, `compare_at_minor`, `available`.
 - **product_prices** *(later)*: `product_id`, `price_minor`, `compare_at_minor`, `observed_at` — "price dropped" alerts.
 - **categories** *(later)*: a tree (`parent_id`, `path` like `women/unstitched/3-piece`) once categories need more than today's enum.

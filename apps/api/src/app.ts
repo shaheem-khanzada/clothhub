@@ -1,4 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { compress } from 'hono/compress';
+import { etag } from 'hono/etag';
 import { requestId } from 'hono/request-id';
 
 import type { Database } from './db/client.js';
@@ -43,6 +45,12 @@ export function createApp({ db, logger }: AppDependencies) {
       );
     });
   }
+
+  // Product pages are JSON full of long CDN URLs: gzip makes them about 9×
+  // smaller, which on a phone network is most of the wait. The ETag is taken
+  // from the uncompressed body, so a refresh with nothing new is a bodiless 304.
+  app.use(compress());
+  app.use(etag());
 
   app.use(sessionMiddleware);
 

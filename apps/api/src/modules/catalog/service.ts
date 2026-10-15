@@ -34,6 +34,7 @@ const productColumns = {
   stitching: products.stitching,
   fabric: products.fabric,
   color: products.color,
+  colorFamilies: products.colorFamilies,
   priceMinor: products.priceMinor,
   priceMaxMinor: products.priceMaxMinor,
   compareAtMinor: products.compareAtMinor,
@@ -222,7 +223,13 @@ export class CatalogService {
 
     const [images, variants] = await Promise.all([
       this.db
-        .select()
+        .select({
+          productId: productImages.productId,
+          url: productImages.url,
+          width: productImages.width,
+          height: productImages.height,
+          thumbhash: productImages.thumbhash,
+        })
         .from(productImages)
         .where(inArray(productImages.productId, ids))
         .orderBy(asc(productImages.productId), asc(productImages.position)),
@@ -260,6 +267,7 @@ export class CatalogService {
           url: image.url,
           width: image.width,
           height: image.height,
+          thumbhash: image.thumbhash,
         })),
         price,
         priceMax: Math.max(price, toMajor(row.priceMaxMinor)),
@@ -275,6 +283,7 @@ export class CatalogService {
         stitching: row.stitching,
         fabric: row.fabric,
         color: row.color,
+        colors: row.colorFamilies,
         sizes: [...sizes].map(([label, inStock]) => ({ label, inStock })),
         description: row.description,
         components: row.components,

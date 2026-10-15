@@ -1,10 +1,9 @@
-import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { ProductImage } from '@/components/catalog/ProductImage';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
-import { sizedImageUrl } from '@/lib/images';
 
 export const THUMBNAIL_STRIP_HEIGHT = 68;
 
@@ -13,12 +12,16 @@ const RING_WIDTH = 2;
 
 type ThumbnailStripProps = {
   images: string[];
+  /** The product's colour swatch, tinting tiles while they load. */
+  tone: string | null;
+  /** Shows the first tile at once. */
+  coverThumbhash: string | null;
   index: number;
   onSelect: (index: number) => void;
 };
 
 /** Jump straight to any photo of the current product. */
-export function ThumbnailStrip({ images, index, onSelect }: ThumbnailStripProps) {
+export function ThumbnailStrip({ images, tone, coverThumbhash, index, onSelect }: ThumbnailStripProps) {
   const theme = useTheme();
   const { t } = useTranslation();
 
@@ -44,9 +47,12 @@ export function ThumbnailStrip({ images, index, onSelect }: ThumbnailStripProps)
             style={styles.thumb}
           >
             {/* The photo fills the whole tile; nothing dark shows around it. */}
-            <Image
-              source={{ uri: sizedImageUrl(uri, 160) }}
-              contentFit="cover"
+            <ProductImage
+              uri={uri}
+              width={THUMB_WIDTH}
+              tone={tone}
+              thumbhash={imageIndex === 0 ? coverThumbhash : null}
+              preview={false}
               style={[StyleSheet.absoluteFill, !selected && styles.unselected]}
             />
 

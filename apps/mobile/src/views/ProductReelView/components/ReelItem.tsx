@@ -1,9 +1,8 @@
-import { Image } from 'expo-image';
+import { LegendList, type LegendListRef } from '@legendapp/list/react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  FlatList,
   Pressable,
   StyleSheet,
   View,
@@ -13,10 +12,12 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
+import { ProductImage } from '@/components/catalog/ProductImage';
 import { Spacing } from '@/constants/theme';
+import { toneOf } from '@/constants/tones';
 import type { Product } from '@/domain/catalog/types';
 import { feedback } from '@/lib/feedback';
-import { sizedImageUrl } from '@/lib/images';
+import { PhotoDensity } from '@/lib/images';
 
 import { ImageProgress } from './ImageProgress';
 import { ThumbnailStrip, THUMBNAIL_STRIP_HEIGHT } from './ThumbnailStrip';
@@ -28,11 +29,15 @@ type ReelItemProps = {
   product: Product;
   width: number;
   height: number;
-  pixelRatio: number;
   /** Status bar height — the top shade only needs to cover this. */
   topInset: number;
   /** Distance from the bottom of the screen to the top of the collapsed sheet. */
   sheetHeight: number | null;
+  /**
+   * The cover as the grid card already showed it, when the reel opened on
+   * this product: on screen from the first frame, then sharpened.
+   */
+  coverPlaceholderUri?: string | null;
 };
 
 /**
@@ -44,18 +49,19 @@ export function ReelItem({
   product,
   width,
   height,
-  pixelRatio,
   topInset,
   sheetHeight,
+  coverPlaceholderUri = null,
 }: ReelItemProps) {
   const { t } = useTranslation();
-  const listRef = useRef<FlatList<string>>(null);
+  const listRef = useRef<LegendListRef>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [imageIndex, setImageIndex] = useState(0);
   const [stripVisible, setStripVisible] = useState(false);
 
   const images = product.images;
+  const tone = toneOf(product.colors);
 
   useEffect(() => {
     return () => {
@@ -110,7 +116,7 @@ export function ReelItem({
 
   return (
     <View style={{ width, height }}>
-      <FlatList
+      <LegendList
         ref={listRef}
         data={images}
         keyExtractor={(uri) => uri}
@@ -118,7 +124,7 @@ export function ReelItem({
         pagingEnabled
         bounces={false}
         showsHorizontalScrollIndicator={false}
-        getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
+        getFixedItemSize={() => width}
         onScrollBeginDrag={revealStrip}
         onMomentumScrollEnd={handleMomentumEnd}
         renderItem={({ item, index }) => (
@@ -130,10 +136,14 @@ export function ReelItem({
             onPress={handleTap}
             style={{ width, height }}
           >
-            <Image
-              source={{ uri: sizedImageUrl(item, width * pixelRatio) }}
-              contentFit="cover"
-              transition={150}
+            <ProductImage
+              uri={item}
+              width={width}
+              density={PhotoDensity.full}
+              tone={tone}
+              thumbhash={index === 0 ? product.coverThumbhash : null}
+              placeholderUri={index === 0 ? coverPlaceholderUri : null}
+              contentPosition="center"
               priority={index === 0 ? 'high' : 'normal'}
               style={StyleSheet.absoluteFill}
             />
@@ -163,7 +173,13 @@ export function ReelItem({
           exiting={FadeOut.duration(220)}
           style={[styles.strip, { bottom: sheetHeight + Spacing.twoAndOne }]}
         >
-          <ThumbnailStrip images={images} index={imageIndex} onSelect={goToImage} />
+          <ThumbnailStrip
+            images={images}
+            tone={tone}
+            coverThumbhash={product.coverThumbhash}
+            index={imageIndex}
+            onSelect={goToImage}
+          />
         </Animated.View>
       ) : null}
 

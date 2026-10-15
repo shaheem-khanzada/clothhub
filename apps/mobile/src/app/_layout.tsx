@@ -1,4 +1,4 @@
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet } from 'react-native';
@@ -8,6 +8,7 @@ import '@/i18next/i18next';
 
 import { useTheme } from '@/hooks/useTheme';
 import { queryClient } from '@/lib/queryClient';
+import { queryPersistOptions } from '@/lib/queryPersistence';
 
 const isIos = Platform.OS === 'ios';
 
@@ -30,7 +31,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={queryPersistOptions}>
         <ThemeProvider value={navigationTheme}>
           <StatusBar style="light" />
 
@@ -73,7 +74,7 @@ export default function RootLayout() {
             />
           </Stack>
         </ThemeProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </GestureHandlerRootView>
   );
 }

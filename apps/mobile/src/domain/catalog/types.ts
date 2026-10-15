@@ -37,6 +37,8 @@ export type Product = {
   title: string;
 
   images: string[];
+  /** ThumbHash of the first photo, shown the instant a card appears; null until the API has made one. */
+  coverThumbhash: string | null;
 
   /** Whole rupees. */
   price: number;
@@ -57,6 +59,8 @@ export type Product = {
   pieceCount: number | null;
   stitching: Stitching | null;
   color: string | null;
+  /** Colour families ("red", "beige"…); the first tints the photo while it loads. */
+  colors: string[];
   fabric: string | null;
   /** Sizes that can be bought right now. */
   sizes: string[];

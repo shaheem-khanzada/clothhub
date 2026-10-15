@@ -9,7 +9,7 @@
 #   bash scripts/dev.sh --reimport       reload the scraper dump and re-run the import
 #   bash scripts/dev.sh --dump <file>    use this scraper dump (default: newest
 #                                        ~/Downloads/mysql-dump-clothhub-prod-db-*.dmp)
-#   bash scripts/dev.sh --stop           stop the API started by this script
+#   bash scripts/dev.sh --stop           stop the API (and photo placeholders) started by this script
 #
 # MySQL comes from, in order: a server already listening on 127.0.0.1:3306,
 # Docker (docker compose), or Homebrew (installs mysql@8.4).
@@ -22,7 +22,39 @@ cd "$ROOT"
 STATE_DIR="$ROOT/.dev"
 API_LOG="$STATE_DIR/api.log"
 API_PID="$STATE_DIR/api.pid"
+PLACEHOLDERS_LOG="$STATE_DIR/placeholders.log"
+PLACEHOLDERS_PID="$STATE_DIR/placeholders.pid"
 mkdir -p "$STATE_DIR"
+
+# Stops a process and everything it started (tsx runs the code in a child).
+kill_tree() {
+  local child
+  for child in $(pgrep -P "$1" 2>/dev/null); do kill_tree "$child"; done
+  kill "$1" 2>/dev/null
+}
+
+# Stops a background process recorded in a pid file. Succeeds if it was running.
+stop_recorded() {
+  local stopped=1
+  if [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; then
+    kill_tree "$(cat "$1")" && stopped=0
+  fi
+  rm -f "$1"
+  return "$stopped"
+}
+
+# Stops this repo's API: the one this script started, and anything else
+# serving the API ports from src/index.ts. Succeeds if something was stopped.
+stop_api() {
+  local stopped=1
+  stop_recorded "$API_PID" && stopped=0
+  for port in 3000 3100; do
+    for pid in $(lsof -ti "tcp:$port" -sTCP:LISTEN 2>/dev/null); do
+      if ps -o command= -p "$pid" | grep -q 'src/index.ts'; then kill_tree "$pid" && stopped=0; fi
+    done
+  done
+  return "$stopped"
+}
 
 PLATFORM=ios
 RUN_APP=1
@@ -36,16 +68,10 @@ while [[ $# -gt 0 ]]; do
     --reimport) REIMPORT=1 ;;
     --dump) DUMP="${2:-}"; shift ;;
     --stop)
-      stopped=0
-      if [[ -f "$API_PID" ]] && kill "$(cat "$API_PID")" 2>/dev/null; then stopped=1; fi
-      # Anything still serving the API ports (e.g. started before this script tracked it).
-      for port in 3000 3100; do
-        for pid in $(lsof -ti "tcp:$port" -sTCP:LISTEN 2>/dev/null); do
-          if ps -o command= -p "$pid" | grep -q 'src/index.ts'; then kill "$pid" && stopped=1; fi
-        done
-      done
-      rm -f "$API_PID"
-      [[ "$stopped" -eq 1 ]] && echo "API stopped." || echo "No API started by this script is running."
+      stop_api && echo "API stopped." || echo "No API started by this script is running."
+      if stop_recorded "$PLACEHOLDERS_PID"; then
+        echo "Photo placeholders stopped (the next run carries on where this one stopped)."
+      fi
       exit 0
       ;;
     *) echo "Unknown option: $1 (see the top of scripts/dev.sh)" >&2; exit 1 ;;
@@ -187,26 +213,41 @@ LISTED="$(app_sql -N -e "SELECT COUNT(*) FROM \`$DB_NAME\`.products WHERE listed
 note "$LISTED products in the app."
 
 # ---------------------------------------------------------------------------
+# ThumbHash previews for product photos. The first run downloads a tiny copy
+# of every cover (about 40 minutes), so it runs in the background; photos
+# without one simply load with the blurred preview meanwhile.
+MISSING="$(app_sql -N -e "SELECT COUNT(*) FROM \`$DB_NAME\`.products p JOIN \`$DB_NAME\`.product_images i ON i.product_id = p.id AND i.position = 0 WHERE p.listed AND i.thumbhash IS NULL")"
+if [[ "$MISSING" -gt 0 ]] && ! { [[ -f "$PLACEHOLDERS_PID" ]] && kill -0 "$(cat "$PLACEHOLDERS_PID")" 2>/dev/null; }; then
+  bold "Photo placeholders"
+  note "$MISSING covers without a ThumbHash; making them in the background (log: .dev/placeholders.log)."
+  (cd apps/api && nohup "$ROOT/node_modules/.bin/tsx" --env-file-if-exists=.env src/jobs/placeholders/index.ts \
+    </dev/null >"$PLACEHOLDERS_LOG" 2>&1 & echo $! >"$PLACEHOLDERS_PID")
+fi
+
+# ---------------------------------------------------------------------------
 bold "Starting the API"
 
 API_PORT=3000
-if curl -fsS "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1; then
-  note "Already running on http://localhost:$API_PORT"
-else
-  if port_open "$API_PORT"; then
-    API_PORT=3100
-    note "Port 3000 is in use by something else; using $API_PORT."
-  fi
-  # tsx directly (not npx), detached from this terminal, so --stop can end it cleanly.
-  (cd apps/api && PORT="$API_PORT" nohup "$ROOT/node_modules/.bin/tsx" --env-file-if-exists=.env src/index.ts \
-    </dev/null >"$API_LOG" 2>&1 & echo $! >"$API_PID")
-  for _ in $(seq 1 60); do
-    curl -fsS "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 && break
-    sleep 1
-  done
-  curl -fsS "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 || fail "The API did not start. Last lines of $API_LOG:\n$(tail -20 "$API_LOG")"
-  note "Running on http://localhost:$API_PORT  (log: .dev/api.log, stop: bash scripts/dev.sh --stop)"
+# Always serve the code that is checked out: an API left running from an
+# earlier run (or an earlier branch) answers with old response shapes.
+if stop_api; then
+  note "Stopped the API from an earlier run."
+  for _ in $(seq 1 20); do port_open "$API_PORT" || break; sleep 0.5; done
 fi
+if port_open "$API_PORT"; then
+  API_PORT=3100
+  note "Port 3000 is in use by something else; using $API_PORT."
+fi
+# tsx watch: reloads by itself when the code changes (a git pull, an edit).
+# Detached from this terminal, so --stop can end it cleanly.
+(cd apps/api && PORT="$API_PORT" nohup "$ROOT/node_modules/.bin/tsx" watch --env-file-if-exists=.env src/index.ts \
+  </dev/null >"$API_LOG" 2>&1 & echo $! >"$API_PID")
+for _ in $(seq 1 60); do
+  curl -fsS "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 && break
+  sleep 1
+done
+curl -fsS "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 || fail "The API did not start. Last lines of $API_LOG:\n$(tail -20 "$API_LOG")"
+note "Running on http://localhost:$API_PORT, reloading on code changes  (log: .dev/api.log, stop: bash scripts/dev.sh --stop)"
 
 # The app's API address: the simulator reaches the Mac as localhost, the Android emulator as 10.0.2.2.
 API_HOST=localhost

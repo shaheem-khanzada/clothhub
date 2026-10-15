@@ -1,16 +1,16 @@
-import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { DiscountBadge } from '@/components/catalog/DiscountBadge';
 import { PriceLine } from '@/components/catalog/PriceLine';
+import { ProductImage } from '@/components/catalog/ProductImage';
 import { HStack } from '@/components/ui/HStack';
 import { Text } from '@/components/ui/Text';
 import { VStack } from '@/components/ui/VStack';
 import { PageGutter, Spacing, Typography } from '@/constants/theme';
+import { toneOf } from '@/constants/tones';
 import type { Product } from '@/domain/catalog/types';
 import { useTheme } from '@/hooks/useTheme';
-import { sizedImageUrl } from '@/lib/images';
 
 const THUMB_SIZE = 64;
 const NAME_LINES = 2;
@@ -64,16 +64,17 @@ export function ProductSummary({ product, bottomPadding = Spacing.three }: Produ
       style={[styles.container, { paddingBottom: 0 }]}
     >
       <View style={[styles.thumb, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {cover ? (
-          <Image
-            source={{ uri: sizedImageUrl(cover, 220) }}
-            contentFit="cover"
-            // Portrait product shots: the upper part holds the neckline and
-            // embroidery, which is what identifies the outfit in a circle.
-            contentPosition={{ top: '25%' }}
-            style={StyleSheet.absoluteFill}
-          />
-        ) : null}
+        <ProductImage
+          uri={cover}
+          width={THUMB_SIZE}
+          tone={toneOf(product.colors)}
+          thumbhash={product.coverThumbhash}
+          preview={false}
+          // Portrait product shots: the upper part holds the neckline and
+          // embroidery, which is what identifies the outfit in a circle.
+          contentPosition={{ top: '25%' }}
+          style={StyleSheet.absoluteFill}
+        />
       </View>
 
       <VStack style={styles.text}>
