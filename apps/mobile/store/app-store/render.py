@@ -1,14 +1,17 @@
 """
-Renders the App Store screenshots (1320 x 2868, the 6.9" iPhone size) from
+Renders the App Store screenshots from
 iPhone 17 Pro simulator captures.
 
     1. Put the captures in captures/ as s1.png, s2.png, ... (not committed).
     2. pip install playwright && python3 render.py   (or: python3 render.py 2 4)
-    3. Upload screenshots/*.png in App Store Connect, in order.
+    3. Upload screenshots/<size>/*.png in App Store Connect, in order:
+       6.3" (1206 x 2622) is the one App Store Connect asks for; 6.9" (1320 x 2868) is for the larger slot.
 """
 import base64
 import pathlib
 import sys
+
+from PIL import Image
 
 from playwright.sync_api import sync_playwright
 
@@ -16,7 +19,8 @@ HERE = pathlib.Path(__file__).parent
 MOBILE = HERE.parents[1]
 CAPTURES = HERE / "captures"
 OUT = HERE / "screenshots"
-OUT.mkdir(exist_ok=True)
+# Designed at 6.9"; the 6.3" set is the same picture scaled down.
+SIZES = {"6.9": (1320, 2868), "6.3": (1206, 2622)}
 
 W, H = 1320, 2868
 
@@ -82,9 +86,16 @@ def main() -> None:
             )
             page.set_content(html, wait_until="load")
             page.evaluate("document.fonts.ready")
-            target = OUT / f"clothhub-{index:02d}.png"
-            page.screenshot(path=str(target), full_page=False)
-            print("wrote", target)
+            name = f"clothhub-{index:02d}.png"
+            master = OUT / "6.9" / name
+            master.parent.mkdir(parents=True, exist_ok=True)
+            page.screenshot(path=str(master), full_page=False)
+            for size, (width, height) in SIZES.items():
+                if (width, height) != (W, H):
+                    target = OUT / size / name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    Image.open(master).resize((width, height), Image.LANCZOS).save(target, optimize=True)
+            print("wrote", name)
         browser.close()
 
 

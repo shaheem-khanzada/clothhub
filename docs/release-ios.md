@@ -47,5 +47,5 @@ npx eas-cli@latest build --platform ios --profile production --auto-submit
   is the development API).
 - App Store listing: screenshots, description, privacy policy URL, and the privacy
   questionnaire (the app collects no personal data in V1; favourites stay on the device).
-- Screenshots live in `apps/mobile/store/app-store/screenshots/` (1320 × 2868). To redo them,
+- Screenshots live in `apps/mobile/store/app-store/screenshots/` (6.3" and 6.9" sets). To redo them,
   take new simulator captures and run `apps/mobile/store/app-store/render.py` (see its header).
