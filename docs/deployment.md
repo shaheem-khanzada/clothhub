@@ -70,6 +70,7 @@ mysql://clothhub_reader:<reader password>@a8w08w44sccs84c4wgc8k404:3306/clothhub
 | Pre-deployment command | `node dist/migrate.js` |
 | Domain | e.g. `https://api-dev.<domain>` / `https://api.<domain>` |
 | Auto deploy | on for dev, off for prod |
+| Watch paths | `apps/api/**` `packages/shared/**` `package.json` `package-lock.json` — app-only commits don't redeploy |
 
 **Environment variables** (mark the URLs as secrets):
 
@@ -94,7 +95,9 @@ The first run imports everything (about 4 minutes for 290k products); later runs
 scraper changed and take seconds. The placeholders job then makes a ThumbHash for each new cover photo
 (the app shows it the instant a card appears): the first run fetches a 100 px copy of every listed cover,
 about 40 minutes; later runs take seconds. Neither job can overlap itself, and dev and prod never block
-each other. Force a full re-normalisation after changing ingest rules with `node dist/jobs/ingest.js --full` (bump
+each other. For the very first run, start the command from the app's **Terminal** tab (or **Run now**) and
+check the task's timeout setting if your Coolify version has one; the placeholders job is safe to stop and
+carries on where it stopped on the next run. Force a full re-normalisation after changing ingest rules with `node dist/jobs/ingest.js --full` (bump
 `INGEST_VERSION` in `apps/api/src/modules/ingest/transform.ts` so unchanged rows are re-processed too).
 
 ## 4. Check it
