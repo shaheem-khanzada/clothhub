@@ -15,7 +15,9 @@ WORKDIR /repo
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
-RUN npm ci --workspace @clothhub/api --include-workspace-root=false
+# --include=dev: the build tools (tsup, TypeScript) are dev dependencies, and a
+# host that passes NODE_ENV=production at build time would otherwise skip them.
+RUN npm ci --workspace @clothhub/api --include-workspace-root=false --include=dev
 
 # --- build ---
 FROM deps AS build
