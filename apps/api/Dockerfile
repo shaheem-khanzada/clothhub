@@ -1,6 +1,6 @@
 # ClothHub API — one image, four commands:
-#   node dist/index.js              HTTP server (default)
-#   node dist/migrate.js            apply database migrations (Coolify pre-deploy)
+#   node dist/index.js              HTTP server (default; applies migrations first)
+#   node dist/migrate.js            apply database migrations on their own
 #   node dist/jobs/ingest.js        scraper → catalog sync (Coolify scheduled task)
 #   node dist/jobs/placeholders.js  ThumbHash previews for cover photos (after ingest)
 #
@@ -48,4 +48,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- "http://127.0.0.1:${PORT:-3000}/health" || exit 1
 
-CMD ["node", "dist/index.js"]
+# Migrations run on every start, before the server listens: the database is
+# always at the code's schema, whatever the host does around a deploy. They
+# are additive (see docs/data-model.md), so the old container keeps serving
+# while the new one migrates. `exec` hands signals straight to the server.
+CMD ["sh", "-c", "node dist/migrate.js && exec node dist/index.js"]

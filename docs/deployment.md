@@ -67,7 +67,7 @@ mysql://clothhub_reader:<reader password>@a8w08w44sccs84c4wgc8k404:3306/clothhub
 | Dockerfile location | `/apps/api/Dockerfile` |
 | Port | `3000` |
 | Health check | path `/health` |
-| Pre-deployment command | `node dist/migrate.js` |
+| Migrations | nothing to set: the container applies them each time it starts, before serving |
 | Domain | e.g. `https://api-dev.<domain>` / `https://api.<domain>` |
 | Auto deploy | on for dev, off for prod |
 | Watch paths | `apps/api/**` `packages/shared/**` `package.json` `package-lock.json` — app-only commits don't redeploy |
@@ -116,7 +116,7 @@ open https://api-dev.<domain>/openapi.json
 ## Releasing to production
 
 1. Merge to `main` → dev deploys and migrates automatically; check the app against dev.
-2. In Coolify, **Deploy** `clothhub-api-prod`. Its pre-deployment step applies the same migrations to
-   `clothhub_prod` before the new version starts.
+2. In Coolify, **Deploy** `clothhub-api-prod`. The new container applies the same migrations to
+   `clothhub_prod` as it starts, before it serves requests.
 3. Migrations are additive and backwards-compatible (see `docs/data-model.md`), so the old version keeps
    working during the deploy.

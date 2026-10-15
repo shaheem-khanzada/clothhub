@@ -111,7 +111,7 @@ full catalogue (124k listed products).
 
 - **One Dockerfile** (multi-stage, small production image). The same image runs four commands:
   - `node dist/index.js` — the HTTP server
-  - `node dist/migrate.js` — applies migrations (Coolify pre-deployment command)
+  - `node dist/migrate.js` — applies migrations (also run automatically each time the server container starts)
   - `node dist/jobs/ingest.js` — the import (Coolify scheduled task)
   - `node dist/jobs/placeholders.js` — ThumbHash previews for cover photos (same scheduled task, after the import)
 - **Local:** `npm run db:up` starts MySQL 8.4; `npm run scraper:load <dump>` loads a scraper dump; `npm run
