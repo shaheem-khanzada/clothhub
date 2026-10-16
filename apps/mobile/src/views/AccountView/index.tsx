@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/Text';
 import { Links } from '@/constants/links';
 import { PageGutter, Radii, Spacing, Typography } from '@/constants/theme';
 import { useSession } from '@/domain/auth/session';
+import { presentSignIn } from '@/domain/auth/signInSheet';
 import { useDeleteAccount, useSignOut } from '@/domain/auth/useAuthMutations';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -19,7 +20,6 @@ import { useTheme } from '@/hooks/useTheme';
 /** The signed-in person's account: who they are, sign out, delete the account. */
 export default function AccountView() {
   const theme = useTheme();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
@@ -73,7 +73,7 @@ export default function AccountView() {
             </Text>
             <Button
               title={t('auth.account.signInCta')}
-              onPress={() => router.push('/sign-in')}
+              onPress={presentSignIn}
               style={styles.signedOutButton}
             />
           </View>

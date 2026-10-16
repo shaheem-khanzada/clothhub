@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import '@/i18next/i18next';
 
+import { SignInSheet } from '@/components/auth/SignInSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { queryClient } from '@/lib/queryClient';
 import { queryPersistOptions } from '@/lib/queryPersistence';
@@ -58,15 +59,6 @@ export default function RootLayout() {
             <Stack.Screen name="account" />
 
             <Stack.Screen
-              name="sign-in"
-              options={{
-                headerShown: false,
-                // A sheet over whatever needed an account, the reel included.
-                presentation: 'modal',
-              }}
-            />
-
-            <Stack.Screen
               name="brand/[brandId]/[productId]"
               options={{
                 // iOS puts close and ⋯ in the native bar (see ReelToolbar), so
@@ -84,6 +76,9 @@ export default function RootLayout() {
               }}
             />
           </Stack>
+
+          {/* One sign-in sheet for the whole app, opened with presentSignIn(). */}
+          <SignInSheet />
         </ThemeProvider>
       </PersistQueryClientProvider>
     </GestureHandlerRootView>

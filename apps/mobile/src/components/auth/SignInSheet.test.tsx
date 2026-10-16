@@ -1,25 +1,21 @@
+import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { useAccountGate } from '@/domain/auth/session';
+import { SIGN_IN_SHEET } from '@/domain/auth/signInSheet';
 import { authClient } from '@/lib/authClient';
 import { createQueryWrapper } from '@/test-utils/queryClient';
 
-import SignInView from './index';
+import { SignInSheet } from './SignInSheet';
 
-const mockBack = jest.fn();
-
-jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: mockBack, push: jest.fn() }),
-  router: { push: jest.fn() },
-}));
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn() }));
-jest.mock('react-native-safe-area-context', () => jest.requireActual('react-native-safe-area-context/jest/mock').default);
 
 const signInEmail = jest.mocked(authClient.signIn.email);
 const signUpEmail = jest.mocked(authClient.signUp.email);
+const dismiss = jest.mocked(TrueSheet.dismiss);
 
-async function renderSignIn() {
-  await render(<SignInView />, { wrapper: createQueryWrapper() });
+async function renderSheet() {
+  await render(<SignInSheet />, { wrapper: createQueryWrapper() });
 }
 
 async function fill(label: string, value: string) {
@@ -34,30 +30,39 @@ async function press(name: string) {
   });
 }
 
+/** What TrueSheet does when the person swipes the sheet away (the mock keeps mounted sheets by name). */
+async function swipeAway() {
+  const sheets = (TrueSheet as unknown as { instances: Record<string, { props: { onDidDismiss: () => void } }> }).instances;
+
+  await act(async () => {
+    sheets[SIGN_IN_SHEET]?.props.onDidDismiss();
+  });
+}
+
 beforeEach(() => {
-  mockBack.mockClear();
   signInEmail.mockClear();
   signUpEmail.mockClear();
+  dismiss.mockClear();
   useAccountGate.getState().clear();
 });
 
-describe('SignInView', () => {
-  it('signs in with email and password, then closes and runs the waiting action', async () => {
+describe('SignInSheet', () => {
+  it('signs in with email and password, runs the waiting action and closes', async () => {
     const waiting = jest.fn();
     useAccountGate.getState().hold(waiting);
-    await renderSignIn();
+    await renderSheet();
 
     await fill('Email', ' ada@example.com ');
     await fill('Password', 'analytical');
     await press('Sign in');
 
     expect(signInEmail).toHaveBeenCalledWith({ email: 'ada@example.com', password: 'analytical' });
-    expect(mockBack).toHaveBeenCalledTimes(1);
     expect(waiting).toHaveBeenCalledTimes(1);
+    expect(dismiss).toHaveBeenCalledWith(SIGN_IN_SHEET);
   });
 
   it('points out what to fix before sending anything', async () => {
-    await renderSignIn();
+    await renderSheet();
 
     await fill('Email', 'ada@');
     await press('Sign in');
@@ -71,18 +76,18 @@ describe('SignInView', () => {
       data: null,
       error: { code: 'INVALID_EMAIL_OR_PASSWORD', message: 'Invalid email or password', status: 401 },
     } as never);
-    await renderSignIn();
+    await renderSheet();
 
     await fill('Email', 'ada@example.com');
     await fill('Password', 'wrong-one');
     await press('Sign in');
 
     expect(screen.getByText('That email and password don’t match.')).toBeOnTheScreen();
-    expect(mockBack).not.toHaveBeenCalled();
+    expect(dismiss).not.toHaveBeenCalled();
   });
 
   it('creates an account with a name', async () => {
-    await renderSignIn();
+    await renderSheet();
 
     await press('Create an account');
     expect(screen.getByText('Create your account')).toBeOnTheScreen();
@@ -99,20 +104,21 @@ describe('SignInView', () => {
     await press('Create account');
 
     expect(signUpEmail).toHaveBeenCalledWith({ name: 'Ada Lovelace', email: 'ada@example.com', password: 'analytical' });
-    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(dismiss).toHaveBeenCalledWith(SIGN_IN_SHEET);
   });
 
-  it('drops the waiting action when closed without signing in', async () => {
+  it('drops the waiting action and starts fresh when swiped away', async () => {
     const waiting = jest.fn();
     useAccountGate.getState().hold(waiting);
-    await renderSignIn();
+    await renderSheet();
 
-    await press('Close');
-    await act(async () => {
-      screen.unmount();
-    });
+    await press('Create an account');
+    await fill('Email', 'half-typed@');
+    await swipeAway();
 
     expect(useAccountGate.getState().pending).toBeNull();
     expect(waiting).not.toHaveBeenCalled();
+    expect(screen.getByText('Welcome back')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Email').props.value).toBe('');
   });
 });

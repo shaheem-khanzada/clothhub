@@ -1,16 +1,14 @@
+import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { act, renderHook } from '@testing-library/react-native';
-import { router } from 'expo-router';
 
 import { signInAs, signOutForTest } from '@/test-utils/authClient';
 
 import { useAccountGate, useRequireAccount, useSession } from './session';
 
-jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
-
 beforeEach(() => {
   signOutForTest();
   useAccountGate.getState().clear();
-  jest.mocked(router.push).mockClear();
+  jest.mocked(TrueSheet.present).mockClear();
 });
 
 describe('useSession', () => {
@@ -39,16 +37,16 @@ describe('useRequireAccount', () => {
 
     expect(result.current(action)).toBe('saved');
     expect(action).toHaveBeenCalledTimes(1);
-    expect(router.push).not.toHaveBeenCalled();
+    expect(TrueSheet.present).not.toHaveBeenCalled();
   });
 
-  it('opens sign-in first when signed out, and runs the action once signed in', async () => {
+  it('opens the sign-in sheet first when signed out, and runs the action once signed in', async () => {
     const { result } = await renderHook(() => useRequireAccount());
     const action = jest.fn();
 
     expect(result.current(action)).toBeUndefined();
     expect(action).not.toHaveBeenCalled();
-    expect(router.push).toHaveBeenCalledWith('/sign-in');
+    expect(TrueSheet.present).toHaveBeenCalledWith('sign-in');
 
     await act(async () => {
       useAccountGate.getState().release();

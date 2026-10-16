@@ -137,7 +137,7 @@ full catalogue (124k listed products).
 | 3 | **Catalogue API** — endpoints, OpenAPI, tests | ✅ 138 API tests (unit + MySQL integration) |
 | 4 | **Mobile on the API** — real `api.ts`, env URL, React Query + Zustand, tests | ✅ 37 mobile tests |
 | 5 | **Dev + production on Coolify** — databases, two API apps, scheduled ingest; app pointed at dev | Next — `docs/deployment.md` |
-| 6 | **Sign-in** — Better Auth: email + password, Apple, Google; sign-in screen; account screen; delete account | Email ✅ — Apple and Google need credentials |
+| 6 | **Sign-in** — Better Auth: email + password, Apple, Google; sign-in sheet; account screen; delete account | Email ✅ — Apple and Google need credentials |
 | 7 | **Synced saves** — favourites and collections per account; local hearts merged on first sign-in | |
 
 ---
@@ -153,7 +153,7 @@ full catalogue (124k listed products).
   (`favorites`, `collections`, `collection_items`) references `users.id` with ON DELETE CASCADE, so
   deleting the account removes it.
 - **Mobile:** `useSession()` and `useRequireAccount()`, which every save/collect action goes through
-  (`useToggleFavorite`): signed in, the action runs; signed out, the sign-in screen opens and the action
+  (`useToggleFavorite`): signed in, the action runs; signed out, the sign-in sheet opens and the action
   runs after sign-in. The session cookie is kept in SecureStore and sent by `apiClient`. The favourites
   store is still a local cache with a `toggle`; phase 7 adds a sync step and screens keep the same hooks.
 

@@ -44,7 +44,8 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - MMKV is only for deliberate persistence: "gesture guide seen", favourites, and the saved query cache.
 - The session lives in SecureStore, through `lib/authClient` (Better Auth's Expo client); `apiClient` attaches it to every request. Never copy it into MMKV or React Query.
 - The brand list and the first page of recently visited product lists are saved to MMKV (`lib/queryPersistence.ts`) for an instant cold start. Bump `QUERY_CACHE_VERSION` when a saved response shape changes.
-- Actions that belong to an account (saving, collecting) go through `useRequireAccount()`: signed in, they run at once; signed out, `/sign-in` opens and the action runs after sign-in (`useAccountGate`).
+- Actions that belong to an account (saving, collecting) go through `useRequireAccount()`: signed in, they run at once; signed out, the sign-in sheet opens (`presentSignIn()`) and the action runs after sign-in (`useAccountGate`).
+- Sign-in is one TrueSheet (`components/auth/SignInSheet`) mounted in the root layout, not a route: a sheet presents from the topmost screen, so it also opens over the reel's always-presented product sheet. A pushed modal route would not appear there.
 - Screens ask who is signed in with `useSession()` and sign in/out through the mutations in `domain/auth/useAuthMutations.ts`, never through `authClient` directly.
 - A sheet keeps its draft state locally and commits it on Apply.
 

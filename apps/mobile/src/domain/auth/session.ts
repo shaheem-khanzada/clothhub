@@ -1,13 +1,14 @@
-import { router } from 'expo-router';
 import { create } from 'zustand';
 
 import { authClient } from '@/lib/authClient';
+
+import { presentSignIn } from './signInSheet';
 
 /*
  * The sign-in seam. Screens learn who is signed in from `useSession()`, and
  * every action that belongs to an account (saving, collecting) goes through
  * `useRequireAccount()`: signed in, it runs at once; signed out, the sign-in
- * screen opens first and the action runs once the person is in.
+ * sheet opens first and the action runs once the person is in.
  */
 
 export type SessionUser = {
@@ -75,7 +76,7 @@ export function useRequireAccount() {
     hold(() => {
       action();
     });
-    router.push('/sign-in');
+    presentSignIn();
     return undefined;
   };
 }
