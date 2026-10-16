@@ -80,7 +80,16 @@ PORT=3000
 LOG_LEVEL=info
 DATABASE_URL=<that environment's URL from step 1>
 SCRAPER_DATABASE_URL=<the clothhub_reader URL>
+BETTER_AUTH_SECRET=<openssl rand -base64 32 — one per environment, never reused>
+BETTER_AUTH_URL=<this app's public URL, e.g. https://api.clothhub.digital>
 ```
+
+The server refuses to start without `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` (sign-in), so add them
+before deploying a build that has sign-in. Changing the secret signs everyone out.
+
+Apple and Google sign-in switch on when their values are set (`APPLE_CLIENT_ID` + `APPLE_CLIENT_SECRET`,
+`GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`; see `.env.example`); the startup log line "Sign-in methods"
+says which are on.
 
 ## 3. The ingest job (once per environment)
 
