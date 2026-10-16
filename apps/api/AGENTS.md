@@ -9,12 +9,14 @@ One Docker image with four commands: `index` (server), `migrate`, `jobs/ingest` 
 src/
   index.ts            starts the server (the only file that listens)
   app.ts              builds the Hono app from its dependencies — no side effects, used by tests
-  lib/                env (validated), logger, errors, ids (UUIDv7), session seam, validation hook, advisory lock
+  lib/                env (validated), logger, errors, ids (UUIDv7), session middleware, validation hook, advisory lock
   db/
     client.ts         Drizzle + mysql2 pool
     migrate.ts        applies drizzle/ migrations
-    schema/           one file per domain (catalog, ingest)
+    schema/           one file per domain (auth, catalog, ingest)
   modules/<name>/     routes.ts (HTTP + OpenAPI) · service.ts (queries) · *.test.ts (unit)
+    auth/             Better Auth (auth.ts), its settings (config.ts), the session lookup (session.ts)
+    me/               the signed-in person: GET / DELETE /v1/me
     catalog/          brands and products; scope.ts defines what the app shows
     ingest/           scraper reader, normalisation rules (pure, unit-tested), run.ts
     placeholders/     ThumbHash for every listed cover photo (thumbhash.ts, run.ts)
@@ -55,9 +57,14 @@ test/                 integration tests against MySQL; helpers/ has factories
   `Cache-Control` so a refresh with nothing new is a bodiless 304.
 - **Config:** read through `loadEnv()` only. A new variable goes in the schema
   there and in the root `.env.example`.
-- **Sign-in seam (until phase 6):** `sessionMiddleware` sets `c.get('user')`
-  (always null); routes that need an account call `requireUser(c)`. Don't
-  parse tokens anywhere else.
+- **Sign-in:** Better Auth owns `/api/auth/*` (modules/auth). Every other
+  route reads the person through `c.get('user')` (null when signed out) or
+  `requireUser(c)` (401). Don't read sessions, cookies or tokens anywhere
+  else. Personal responses send `Cache-Control: private, no-store`.
+- **User data:** tables for a person's things reference `users.id` with
+  ON DELETE CASCADE, so `DELETE /v1/me` removes everything.
+- **Auth settings** (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, provider keys)
+  are read by `authConfig()`; only the server needs them, not the jobs.
 
 ## Checks
 

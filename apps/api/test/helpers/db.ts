@@ -47,6 +47,10 @@ export function resetCatalog(pool: mysql.Pool) {
   return truncate(pool, ['product_variants', 'product_images', 'products', 'brands', 'ingest_runs']);
 }
 
+export function resetAccounts(pool: mysql.Pool) {
+  return truncate(pool, ['sessions', 'accounts', 'verifications', 'users']);
+}
+
 export function resetScraper(pool: mysql.Pool) {
   return truncate(pool, ['liveProducts', 'brands']);
 }

@@ -8,23 +8,31 @@ import { ApiError, errorBody, sendError } from './lib/errors.js';
 import type { AppEnv } from './lib/hono.js';
 import type { Logger } from './lib/logger.js';
 import { sessionMiddleware } from './lib/session.js';
+import { type Auth, AUTH_BASE_PATH } from './modules/auth/auth.js';
+import { betterAuthSessionLookup } from './modules/auth/session.js';
 import { catalogRoutes } from './modules/catalog/routes.js';
 import { CatalogService } from './modules/catalog/service.js';
 import { healthRoutes } from './modules/health/routes.js';
+import { meRoutes } from './modules/me/routes.js';
+import { MeService } from './modules/me/service.js';
 
 export type AppDependencies = {
   db: Database;
   logger?: Logger;
+  /**
+   * Sign-in (modules/auth). The server always passes it; tests that don't
+   * involve accounts leave it out, and then nobody is ever signed in.
+   */
+  auth?: Auth;
 };
 
 /**
  * Builds the HTTP app. Kept free of side effects (no listening, no
  * connections of its own) so tests call `app.request()` with a test database.
  *
- * Modules mount here as they are built; `/v1/me` and `/api/auth` come with
- * sign-in.
+ * Modules mount here as they are built.
  */
-export function createApp({ db, logger }: AppDependencies) {
+export function createApp({ db, logger, auth }: AppDependencies) {
   const app = new OpenAPIHono<AppEnv>();
 
   app.use(requestId());
@@ -50,12 +58,24 @@ export function createApp({ db, logger }: AppDependencies) {
   // smaller, which on a phone network is most of the wait. The ETag is taken
   // from the uncompressed body, so a refresh with nothing new is a bodiless 304.
   app.use(compress());
-  app.use(etag());
+  // Not on sign-in's endpoints: a cached "who am I" answer must never come back as a 304.
+  const withEtag = etag();
+  app.use((c, next) => (c.req.path.startsWith(`${AUTH_BASE_PATH}/`) ? next() : withEtag(c, next)));
 
-  app.use(sessionMiddleware);
+  app.use(sessionMiddleware(auth ? betterAuthSessionLookup(auth) : async () => null));
+
+  if (auth) {
+    // Better Auth answers its own endpoints: sign-up, sign-in, sign-out, session, social sign-in.
+    app.on(['GET', 'POST'], `${AUTH_BASE_PATH}/*`, async (c) => {
+      const response = await auth.handler(c.req.raw);
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
+    });
+  }
 
   app.route('/', healthRoutes);
   app.route('/', catalogRoutes(new CatalogService(db)));
+  app.route('/', meRoutes(new MeService(db)));
 
   app.doc31('/openapi.json', {
     openapi: '3.1.0',
