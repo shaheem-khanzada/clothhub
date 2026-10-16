@@ -113,6 +113,26 @@ open https://api-dev.<domain>/openapi.json
 `apps/mobile/.env.local` → `EXPO_PUBLIC_API_URL=https://api-dev.<domain>`, then `npx expo start -c`.
 (EAS build profiles with one URL per environment come with the first TestFlight build.)
 
+## 6. The landing site (once)
+
+A single app — it has no database and no secrets. **+ New resource → Public/Private repository** →
+`shaheem-khanzada/clothhub`, branch `main`:
+
+| Setting | Value |
+| --- | --- |
+| Build pack | Dockerfile |
+| Base directory | `/` |
+| Dockerfile location | `/apps/landing/Dockerfile` |
+| Port | `3000` |
+| Health check | path `/` |
+| Domain | e.g. `https://<domain>` (and `https://www.<domain>`) |
+| Auto deploy | on |
+| Watch paths | `apps/landing/**` `package.json` `package-lock.json` |
+
+Once the API has a waitlist endpoint, add `NEXT_PUBLIC_WAITLIST_URL` (that endpoint's full URL) as a
+**build variable** and redeploy: Next.js writes `NEXT_PUBLIC_` values into the page when it builds, so a
+runtime-only variable has no effect. Until then the form tells visitors it couldn't add them.
+
 ## Releasing to production
 
 1. Merge to `main` → dev deploys and migrates automatically; check the app against dev.

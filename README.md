@@ -10,6 +10,7 @@ let the community surface what's worth buying.
 apps/
   mobile/          Expo + React Native app (iOS, Android)
   api/             REST API — Hono, Zod, Drizzle, MySQL — plus the scraper import job
+  landing/         marketing site and waitlist — Next.js, Tailwind CSS
 packages/
   shared/          Zod schemas + types: the contract between api and mobile
 docs/
@@ -66,6 +67,12 @@ npx expo run:ios                 # or: npx expo run:android
 
 The app needs a development build (native modules), not Expo Go.
 
+**Landing site**
+
+```bash
+npm run landing                  # http://localhost:3001
+```
+
 ## Everyday commands (repo root)
 
 | Command | Does |
@@ -74,6 +81,7 @@ The app needs a development build (native modules), not Expo Go.
 | `npm test` | Runs every workspace's tests (API integration tests need `npm run db:up`) |
 | `npm run mobile` | Starts Metro for the app |
 | `npm run api` | Starts the API with reload |
+| `npm run landing` | Starts the landing site on port 3001 |
 | `npm run ingest` | Imports from the scraper (`-- --full` to re-normalise everything) |
 | `npm run db:generate` | Creates a migration from schema changes |
 | `npm run db:migrate` | Applies migrations |
@@ -81,5 +89,6 @@ The app needs a development build (native modules), not Expo Go.
 
 ## Deployment
 
-Development and production run on Coolify, next to the scraper, from one
-Docker image (`apps/api/Dockerfile`). See `docs/deployment.md`.
+Development and production run on Coolify, next to the scraper: the API from
+`apps/api/Dockerfile`, the landing site from `apps/landing/Dockerfile`. See
+`docs/deployment.md`.

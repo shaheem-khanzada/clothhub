@@ -10,13 +10,13 @@ small, contained change.
 
 | Area | Decision |
 | --- | --- |
-| Repo | One GitHub repo (monorepo): mobile app + API + shared contracts |
+| Repo | One GitHub repo (monorepo): mobile app + API + landing site + shared contracts |
 | API | Node + **Hono**, REST, request/response validated with **Zod**, OpenAPI generated from the same schemas |
 | Database | **MySQL 8.4 on the scraper's server**, in ClothHub's own databases (`clothhub_dev`, `clothhub_prod`). The scraper's database is never written to |
 | ORM / migrations | **Drizzle ORM** (mysql2) + Drizzle Kit migrations |
 | Search | MySQL FULLTEXT (name, title, brand/type/tags/fabric/colour text) + LIKE for short words and codes. No separate search engine in V1 |
 | Auth (last phase) | **Better Auth** inside the API, on the same database: Sign in with Apple, Google, email one-time code |
-| Runtime | Everything runs from **Docker**. One image for the API, deployed on **Coolify** (Hostinger) |
+| Runtime | Everything runs from **Docker**. One image for the API and one for the landing site, deployed on **Coolify** (Hostinger) |
 | Environments | **Development** (auto-deploys from `main`) and **production** (deployed by hand) — see `docs/deployment.md` |
 | Tests | API: Vitest, unit + integration against a real MySQL. Mobile: Jest (jest-expo) + React Native Testing Library. CI runs both |
 | Mobile data | **React Query** for server data, **Zustand** for client state, MMKV for what must survive restarts |
@@ -46,12 +46,16 @@ clothhub/
       drizzle/               SQL migrations (committed)
       test/                  integration tests (MySQL) and fixtures
       Dockerfile
+    landing/                 Next.js + Tailwind marketing site (one page, waitlist form)
+      src/components/        sections/ (the page, top to bottom), mockups/ (phones, cards), ui/
+      src/content/           the products, brands and numbers the page shows
+      Dockerfile             standalone Next.js server
   packages/
     shared/                  Zod schemas + TS types for every API request/response
   docker/mysql/init/         local MySQL grants
   scripts/                   scan-scraper-db.mjs, load-scraper-dump.sh
   docker-compose.yml         local MySQL (+ API container)
-  .github/workflows/ci.yml   typecheck, API tests against MySQL, mobile tests, build
+  .github/workflows/ci.yml   typecheck, API tests against MySQL, mobile tests, API and landing builds
 ```
 
 npm workspaces. `packages/shared` is the contract: the API validates against it and the mobile app parses
