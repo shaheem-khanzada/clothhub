@@ -55,6 +55,17 @@ export default function RootLayout() {
 
             <Stack.Screen name="brand/[brandId]/index" />
 
+            <Stack.Screen name="account" />
+
+            <Stack.Screen
+              name="sign-in"
+              options={{
+                headerShown: false,
+                // A sheet over whatever needed an account, the reel included.
+                presentation: 'modal',
+              }}
+            />
+
             <Stack.Screen
               name="brand/[brandId]/[productId]"
               options={{

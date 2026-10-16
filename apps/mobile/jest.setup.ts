@@ -21,3 +21,9 @@ jest.mock('react-native-mmkv', () => {
 
   return { createMMKV: createMockMMKV };
 });
+
+// Sign-in talks to the API through Better Auth's client; tests use a stand-in
+// whose session they set with signInAs() / signOutForTest().
+jest.mock('@/lib/authClient', () => ({
+  authClient: jest.requireActual('@/test-utils/authClient').authClientMock,
+}));

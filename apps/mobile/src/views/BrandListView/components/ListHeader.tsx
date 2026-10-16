@@ -1,11 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 
+import { HStack } from '@/components/ui/HStack';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { Text } from '@/components/ui/Text';
 import { VStack } from '@/components/ui/VStack';
 import { Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
+
+import { AccountButton } from './AccountButton';
 
 type ListHeaderProps = {
   query: string;
@@ -18,9 +21,13 @@ export function ListHeader({ query, onQueryChange }: ListHeaderProps) {
 
   return (
     <VStack style={styles.container}>
-      <Text accessibilityRole="header" style={Typography.largeTitle_34_bold}>
-        {t('catalog.brands.title')}
-      </Text>
+      <HStack alignItems="center" justifyContent="space-between">
+        <Text accessibilityRole="header" style={Typography.largeTitle_34_bold}>
+          {t('catalog.brands.title')}
+        </Text>
+
+        <AccountButton />
+      </HStack>
 
       <Text style={[Typography.subhead_15_regular, { color: theme.textSecondary }]}>
         {t('catalog.brands.subtitle')}

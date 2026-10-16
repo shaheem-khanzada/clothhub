@@ -65,4 +65,27 @@ export function toApiError(error: unknown): ApiError {
   return new ApiError('unknown_error', error instanceof Error ? error.message : String(error), null);
 }
 
+/**
+ * Where the session cookie comes from. The auth client registers itself here
+ * (lib/authClient.ts), so this module stays free of sign-in code and every
+ * request carries the session when there is one.
+ */
+type SessionCookieSource = () => string | Promise<string>;
+
+let sessionCookie: SessionCookieSource = () => '';
+
+export function setSessionCookieSource(source: SessionCookieSource) {
+  sessionCookie = source;
+}
+
+apiClient.interceptors.request.use(async (config) => {
+  const cookie = await sessionCookie();
+
+  if (cookie) {
+    config.headers.set('Cookie', cookie);
+  }
+
+  return config;
+});
+
 apiClient.interceptors.response.use(undefined, (error: unknown) => Promise.reject(toApiError(error)));

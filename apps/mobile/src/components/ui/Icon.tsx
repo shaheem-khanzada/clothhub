@@ -12,6 +12,7 @@ import HeartOutline from '@/assets/icons/heart.outline.svg';
 import MoreOutline from '@/assets/icons/more.outline.svg';
 import OpenFill from '@/assets/icons/open.fill.svg';
 import OpenOutline from '@/assets/icons/open.outline.svg';
+import PersonOutline from '@/assets/icons/person.outline.svg';
 import SearchOutline from '@/assets/icons/search.outline.svg';
 import ShareFill from '@/assets/icons/share.fill.svg';
 import ShareOutline from '@/assets/icons/share.outline.svg';
@@ -36,6 +37,7 @@ export const icons = {
   'more.outline': MoreOutline,
   'open.fill': OpenFill,
   'open.outline': OpenOutline,
+  'person.outline': PersonOutline,
   'search.outline': SearchOutline,
   'share.fill': ShareFill,
   'share.outline': ShareOutline,
