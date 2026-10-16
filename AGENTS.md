@@ -4,6 +4,7 @@ Read this first, then the AGENTS.md of the workspace you are changing:
 
 - `apps/mobile/AGENTS.md` — app architecture, UI and translation rules
 - `apps/api/AGENTS.md` — API conventions
+- `apps/landing/AGENTS.md` — the marketing site: structure, design and content rules
 - `docs/architecture.md` — phases and deployment
 - `docs/data-model.md` — the database design; new tables follow it
 - `docs/deployment.md` — development and production on Coolify
@@ -14,6 +15,7 @@ Read this first, then the AGENTS.md of the workspace you are changing:
 | --- | --- | --- |
 | `apps/mobile` | `@clothhub/mobile` | Expo app |
 | `apps/api` | `@clothhub/api` | Hono REST API + ingest job, one Docker image |
+| `apps/landing` | `@clothhub/landing` | Next.js marketing site + waitlist, one Docker image |
 | `packages/shared` | `@clothhub/shared` | Zod schemas and types for every API request/response |
 
 npm workspaces; install once from the root with `npm install`. Never run

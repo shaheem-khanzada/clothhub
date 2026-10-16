@@ -49,3 +49,9 @@ jobs:
 
       - name: API build
         run: npm run build -w @clothhub/api
+
+      - name: Landing lint
+        run: npm run lint -w @clothhub/landing
+
+      - name: Landing build
+        run: npm run build -w @clothhub/landing

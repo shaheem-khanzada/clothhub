@@ -1,7 +1,7 @@
 {
   "name": "clothhub",
   "private": true,
-  "description": "ClothHub — fashion discovery for Pakistan. Monorepo: mobile app, API, shared contracts.",
+  "description": "ClothHub — fashion discovery for Pakistan. Monorepo: mobile app, API, landing site, shared contracts.",
   "engines": {
     "node": ">=22"
   },
@@ -14,6 +14,7 @@
     "test": "npm run test --workspaces --if-present",
     "mobile": "npm run start -w @clothhub/mobile",
     "api": "npm run dev -w @clothhub/api",
+    "landing": "npm run dev -w @clothhub/landing",
     "db:up": "docker compose up -d --wait mysql",
     "db:down": "docker compose down",
     "db:generate": "npm run db:generate -w @clothhub/api",

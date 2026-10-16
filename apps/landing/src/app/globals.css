@@ -1,0 +1,174 @@
+@import 'tailwindcss' source('..');
+
+/*
+ * Design tokens.
+ *
+ * The palette is the app's (apps/mobile/src/constants/colors.ts), plus the few
+ * extra shades a marketing page needs. Components use these names — bg-ink,
+ * text-fog, bg-cream — never raw hex, so the look can change in one place.
+ */
+@theme {
+  --font-sans:
+    var(--font-bricolage), ui-sans-serif, -apple-system, 'Helvetica Neue', Helvetica, sans-serif;
+
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-black: #000000;
+  --color-white: #ffffff;
+
+  /* From the app */
+  --color-ink: #0b0b0c; /* page background */
+  --color-graphite: #1a1a1c; /* inputs, search fields, photo placeholders */
+  --color-graphite-raised: #262629; /* chat bubbles */
+  --color-hairline: #2c2c2e; /* borders and list rules */
+  --color-fog: #a1a1a6; /* secondary text */
+  --color-smoke: #6e6e73; /* tertiary text, struck-through prices */
+  --color-cream: #f2ede4; /* the primary action */
+  --color-on-cream: #111111; /* text on cream */
+  --color-green: #4ade80; /* in stock, switches */
+  --color-rose: #ff375f; /* the saved heart */
+  --color-rose-light: #ff7a9a;
+
+  /* Landing page only */
+  --color-night: #08080a; /* the brands band */
+  --color-panel: #111113; /* the reel showcase */
+  --color-card: #121214; /* feature cards */
+  --color-sheet: #1c1c1f; /* mock sheets and list rows */
+  --color-divider: #1f1f22; /* rules between sections */
+  --color-card-border: #232326;
+  --color-steel: #3a3a3e; /* switch off, the clothes rail */
+  --color-mist: #8a8a90; /* muted headline lines, small print */
+  --color-silver: #c7c7cc; /* captions on photos */
+  --color-sky: #8fd3ff; /* a chat name */
+  --color-link-on-cream: #5a5a5e;
+
+  --animate-reel: reel 13s cubic-bezier(0.7, 0, 0.2, 1) infinite;
+  --animate-marquee: marquee 70s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-beat: beat 2.6s ease-in-out infinite;
+  --animate-sway: sway 6s ease-in-out infinite;
+
+  /* Four slides: three products, then the first again so the loop has no jump. */
+  @keyframes reel {
+    0%,
+    22% {
+      transform: translateY(0);
+    }
+    28%,
+    50% {
+      transform: translateY(-25%);
+    }
+    56%,
+    78% {
+      transform: translateY(-50%);
+    }
+    84%,
+    100% {
+      transform: translateY(-75%);
+    }
+  }
+
+  /* The track holds the list twice, so half its width is one full loop. */
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes beat {
+    0%,
+    60%,
+    100% {
+      transform: scale(1);
+    }
+    68% {
+      transform: scale(1.2);
+    }
+    76% {
+      transform: scale(0.96);
+    }
+    84% {
+      transform: scale(1.06);
+    }
+  }
+
+  @keyframes sway {
+    0%,
+    100% {
+      transform: rotate(-1.2deg);
+    }
+    50% {
+      transform: rotate(1.2deg);
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+/* Frosted control floating over photos — the web stand-in for the app's Liquid Glass buttons. */
+@utility glass {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 9999px;
+  background-color: rgb(28 28 30 / 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+
+/* The metal edge and drop shadow of a phone mockup. */
+@utility phone-bezel {
+  background: linear-gradient(155deg, #3a3a3e 0%, #161618 20%, #0a0a0b 60%, #2a2a2e 100%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 0 0 1px rgb(0 0 0 / 0.9),
+    0 60px 120px -40px rgb(0 0 0 / 0.95),
+    0 30px 60px -40px rgb(0 0 0 / 0.8);
+}
+
+/* Fades the left and right edges of a horizontally scrolling row. */
+@utility fade-edges {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
