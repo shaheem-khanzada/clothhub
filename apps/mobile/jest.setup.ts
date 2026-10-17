@@ -27,6 +27,3 @@ jest.mock('react-native-mmkv', () => {
 jest.mock('@/lib/authClient', () => ({
   authClient: jest.requireActual('@/test-utils/authClient').authClientMock,
 }));
-
-// Sheets are native; tests use the library's own stand-in (TrueSheet.present / dismiss are jest.fn()).
-jest.mock('@lodev09/react-native-true-sheet', () => jest.requireActual('@lodev09/react-native-true-sheet/mock'));

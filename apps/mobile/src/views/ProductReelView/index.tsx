@@ -1,6 +1,6 @@
 import { LegendList } from '@legendapp/list/react-native';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ErrorState } from '@/components/ErrorState';
 import { Spacing, productCardWidth } from '@/constants/theme';
+import { useSession } from '@/domain/auth/session';
 import type { Product } from '@/domain/catalog/types';
 import { useBrandQuery } from '@/domain/catalog/useBrandsQuery';
 import { useBrowseParams } from '@/domain/catalog/useBrowseStore';
@@ -104,6 +105,18 @@ export default function ProductReelView() {
 
   const liked = useIsFavorite(activeProduct?.id ?? '');
   const toggleFavorite = useToggleFavorite();
+  const session = useSession();
+  const productSheetSteppedAside = useRef(false);
+
+  // Sign-in is a native form sheet, and iOS can't present it while this
+  // screen presents the product sheet. Signed out, the heart closes the
+  // product sheet first; it comes back when the reel is in focus again.
+  useFocusEffect(() => {
+    if (productSheetSteppedAside.current) {
+      productSheetSteppedAside.current = false;
+      TrueSheet.present(PRODUCT_SHEET);
+    }
+  });
 
   useReelPrefetch(products, activeIndex, width);
 
@@ -149,6 +162,19 @@ export default function ProductReelView() {
     } else {
       router.replace({ pathname: '/brand/[brandId]', params: { brandId } });
     }
+  };
+
+  const handleToggleLike = async () => {
+    if (!activeProduct) {
+      return;
+    }
+
+    if (session.status !== 'signedIn') {
+      productSheetSteppedAside.current = true;
+      await TrueSheet.dismiss(PRODUCT_SHEET);
+    }
+
+    toggleFavorite(activeProduct.id);
   };
 
   const handleShare = () => {
@@ -240,7 +266,7 @@ export default function ProductReelView() {
         <ActionRail
           bottom={sheetHeight + STRIP_SPACE}
           liked={liked}
-          onToggleLike={() => toggleFavorite(activeProduct.id)}
+          onToggleLike={handleToggleLike}
           onShare={handleShare}
           onVisitBrand={handleVisitBrand}
         />

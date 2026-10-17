@@ -1,11 +1,13 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { TrueSheet } from '@lodev09/react-native-true-sheet';
+import { router } from 'expo-router';
 
 import { useAccountGate } from '@/domain/auth/session';
 import { mmkv, STORAGE_KEYS } from '@/lib/mmkv';
 import { signInAs, signOutForTest } from '@/test-utils/authClient';
 
 import { useFavoritesStore, useIsFavorite, useToggleFavorite } from './useFavoritesStore';
+
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 
 beforeEach(() => {
   useFavoritesStore.setState({ savedAt: {} });
@@ -62,7 +64,7 @@ describe('useFavoritesStore', () => {
       result.current('product-4');
     });
 
-    expect(TrueSheet.present).toHaveBeenCalledWith('sign-in');
+    expect(router.push).toHaveBeenCalledWith('/sign-in');
     expect(useFavoritesStore.getState().savedAt['product-4']).toBeUndefined();
 
     await act(async () => {

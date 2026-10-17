@@ -1,6 +1,6 @@
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { HStack } from '@/components/ui/HStack';
 import { Radio } from '@/components/ui/Radio';
@@ -10,6 +10,7 @@ import { PageGutter, Radii, Spacing, Typography } from '@/constants/theme';
 import { PRODUCT_SORTS } from '@/domain/catalog/filters';
 import type { ProductSort } from '@/domain/catalog/types';
 import { useTheme } from '@/hooks/useTheme';
+import { isIos } from '@/lib/deviceInfo';
 import { feedback } from '@/lib/feedback';
 
 export const SORT_SHEET = 'product-sort';
@@ -36,7 +37,7 @@ export function SortSheet({ selected, onSelect }: SortSheetProps) {
       detents={['auto']}
       grabber
       // iOS 26 draws a Liquid Glass sheet when no background is given.
-      backgroundColor={Platform.OS === 'ios' ? undefined : theme.background}
+      backgroundColor={isIos ? undefined : theme.background}
     >
       <View style={styles.container}>
         <Text accessibilityRole="header" style={[Typography.title_22_bold, styles.title]}>

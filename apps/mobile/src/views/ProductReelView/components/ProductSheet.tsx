@@ -7,10 +7,9 @@ import {
   ReanimatedTrueSheetProvider,
   useReanimatedTrueSheet,
 } from '@lodev09/react-native-true-sheet/reanimated';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { forwardRef, useRef, useState, type ForwardedRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, ScrollView, StyleSheet, type NativeSyntheticEvent } from 'react-native';
+import { ScrollView, StyleSheet, type NativeSyntheticEvent } from 'react-native';
 import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,20 +17,19 @@ import { Button } from '@/components/ui/Button';
 import { PageGutter, Spacing } from '@/constants/theme';
 import type { Product } from '@/domain/catalog/types';
 import { useTheme } from '@/hooks/useTheme';
+import { hasLiquidGlass, isIos } from '@/lib/deviceInfo';
 
 import { ProductDetails } from './ProductDetails';
 import { ProductSummary } from './ProductSummary';
 
 export const PRODUCT_SHEET = 'reel-product';
 
-const isIOS = Platform.OS === 'ios';
-
 // iOS 26 floats the collapsed sheet above the home indicator. The sheet
 // library's automatic inset only *guesses* whether a sheet will float, and on
 // a short card it guessed wrong and added an empty home-indicator strip. On
 // iOS 26 that inset is off: the sheet is exactly its content, and the pinned
 // footer pads itself clear of the home indicator instead.
-const floatingSheet = isIOS && isLiquidGlassAvailable();
+const floatingSheet = hasLiquidGlass;
 
 type ProductSheetProps = {
   product: Product;
@@ -100,7 +98,7 @@ function Sheet({
       grabber
       // iOS: no background at all, so the system draws its Liquid Glass sheet
       // (iOS 26). Android has no glass sheet.
-      backgroundColor={isIOS ? undefined : theme.background}
+      backgroundColor={isIos ? undefined : theme.background}
       scrollableRef={scrollRef}
       style={styles.sheet}
       insetAdjustment={floatingSheet ? 'never' : 'automatic'}
@@ -121,7 +119,7 @@ function Sheet({
         />
       }
       // A solid footer would sit as a dark block on the glass.
-      footerStyle={isIOS ? undefined : { backgroundColor: theme.background }}
+      footerStyle={isIos ? undefined : { backgroundColor: theme.background }}
       onDidPresent={handleSettle}
       onDetentChange={handleSettle}
       onDismissAttempt={onRequestClose}

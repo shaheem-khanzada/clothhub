@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -12,7 +12,6 @@ import { Text } from '@/components/ui/Text';
 import { Links } from '@/constants/links';
 import { PageGutter, Radii, Spacing, Typography } from '@/constants/theme';
 import { useSession } from '@/domain/auth/session';
-import { presentSignIn } from '@/domain/auth/signInSheet';
 import { useDeleteAccount, useSignOut } from '@/domain/auth/useAuthMutations';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -21,6 +20,7 @@ import { useTheme } from '@/hooks/useTheme';
 export default function AccountView() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { t } = useTranslation();
 
   const session = useSession();
@@ -73,7 +73,7 @@ export default function AccountView() {
             </Text>
             <Button
               title={t('auth.account.signInCta')}
-              onPress={presentSignIn}
+              onPress={() => router.push('/sign-in')}
               style={styles.signedOutButton}
             />
           </View>
@@ -106,8 +106,8 @@ export default function AccountView() {
         )}
 
         <View style={styles.links}>
-          <Button variant="link" size="sm" title={t('auth.privacy')} onPress={() => void WebBrowser.openBrowserAsync(Links.privacyPolicy)} />
-          <Button variant="link" size="sm" title={t('auth.terms')} onPress={() => void WebBrowser.openBrowserAsync(Links.terms)} />
+          <Button variant="link" size="sm" title={t('auth.privacy')} onPress={() => WebBrowser.openBrowserAsync(Links.privacyPolicy)} />
+          <Button variant="link" size="sm" title={t('auth.terms')} onPress={() => WebBrowser.openBrowserAsync(Links.terms)} />
         </View>
       </ScrollView>
     </>

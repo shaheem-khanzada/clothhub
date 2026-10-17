@@ -1,4 +1,3 @@
-import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import MockAdapter from 'axios-mock-adapter';
 import { Alert } from 'react-native';
@@ -10,7 +9,10 @@ import { createQueryWrapper } from '@/test-utils/queryClient';
 
 import AccountView from './index';
 
+const mockPush = jest.fn();
+
 jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
   Stack: { Screen: () => null },
 }));
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn() }));
@@ -27,7 +29,7 @@ async function renderAccount() {
 beforeEach(() => {
   api.reset();
   signOut.mockClear();
-  jest.mocked(TrueSheet.present).mockClear();
+  mockPush.mockClear();
   alert.mockClear();
   signOutForTest();
 });
@@ -40,7 +42,7 @@ describe('AccountView', () => {
       fireEvent.press(screen.getByRole('button', { name: 'Sign in or create account' }));
     });
 
-    expect(TrueSheet.present).toHaveBeenCalledWith('sign-in');
+    expect(mockPush).toHaveBeenCalledWith('/sign-in');
   });
 
   it('shows who is signed in', async () => {

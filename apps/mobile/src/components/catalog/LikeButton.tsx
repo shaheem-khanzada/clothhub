@@ -11,9 +11,8 @@ import {
   frame,
   symbolEffect,
 } from '@expo/ui/swift-ui/modifiers';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -26,9 +25,8 @@ import Animated, {
 
 import { Icon } from '@/components/ui/Icon';
 import { useTheme } from '@/hooks/useTheme';
+import { hasLiquidGlass } from '@/lib/deviceInfo';
 import { feedback } from '@/lib/feedback';
-
-const nativeGlass = Platform.OS === 'ios' && isLiquidGlassAvailable();
 
 /** Lets the symbol fill the host, so the glass circle is exactly `size`. */
 const FILL = 10_000;
@@ -147,8 +145,10 @@ export function LikeButton({ liked, onToggle, size = 52, iconSize = 22, style }:
       <Burst clock={clock} size={size} />
 
       <Animated.View style={[box, pressStyle]}>
-        {nativeGlass ? (
-          <Host style={box}>
+        {hasLiquidGlass ? (
+          // Ignore safe areas: otherwise SwiftUI shifts the button as the
+          // host scrolls near the screen edges (it did in the product grid).
+          <Host style={box} ignoreSafeArea="all">
             <SwiftUIButton
               onPress={handlePress}
               modifiers={[

@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  Platform,
   RefreshControl,
   StyleSheet,
   View,
@@ -23,6 +22,7 @@ import { useBrowseParams, useBrowseStore } from '@/domain/catalog/useBrowseStore
 import { catalogKeys } from '@/domain/catalog/queryKeys';
 import { useProductsQuery } from '@/domain/catalog/useProductsQuery';
 import { useTheme } from '@/hooks/useTheme';
+import { isAndroid, isIos } from '@/lib/deviceInfo';
 
 import { Empty } from './components/Empty';
 import { FILTER_SHEET, FilterSheet } from './components/FilterSheet';
@@ -42,7 +42,7 @@ const DRAW_DISTANCE = 600;
 
 // iOS gets the native search bar in the navigation bar. Android's native one
 // overflows the header, so Android searches from a field at the top of the list.
-const nativeHeaderSearch = Platform.OS === 'ios';
+const nativeHeaderSearch = isIos;
 
 export default function ProductListView() {
   const theme = useTheme();
@@ -208,7 +208,7 @@ export default function ProductListView() {
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: Platform.OS === 'android' ? Spacing.twoAndOne : Spacing.two,
+            paddingTop: isAndroid ? Spacing.twoAndOne : Spacing.two,
             paddingBottom: insets.bottom + Spacing.four,
           },
         ]}

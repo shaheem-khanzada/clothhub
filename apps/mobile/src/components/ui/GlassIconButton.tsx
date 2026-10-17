@@ -5,10 +5,8 @@ import {
   buttonStyle,
   frame,
 } from '@expo/ui/swift-ui/modifiers';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import type { ComponentProps } from 'react';
 import {
-  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -20,6 +18,7 @@ import {
 
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { useTheme } from '@/hooks/useTheme';
+import { hasLiquidGlass } from '@/lib/deviceInfo';
 import { feedback } from '@/lib/feedback';
 
 export type SFSymbol = NonNullable<ComponentProps<typeof SwiftUIImage>['systemName']>;
@@ -36,8 +35,6 @@ type GlassIconButtonProps = Omit<PressableProps, 'style' | 'children'> & {
   style?: StyleProp<ViewStyle>;
 };
 
-// Read once: availability is fixed for the life of the process.
-const nativeGlass = Platform.OS === 'ios' && isLiquidGlassAvailable();
 
 /** Lets the symbol fill whatever the host proposes, so the glass circle is exactly `size`. */
 const FILL = 10_000;
@@ -78,7 +75,7 @@ export function GlassIconButton({
     onPress?.(event as GestureResponderEvent);
   };
 
-  if (nativeGlass) {
+  if (hasLiquidGlass) {
     return (
       <Host style={[shape, style]} pointerEvents={props.pointerEvents}>
         <SwiftUIButton

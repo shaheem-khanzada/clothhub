@@ -28,7 +28,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
     logger.info({ signal }, 'Shutting down');
     server.close(() => {
-      void pool.end().finally(() => process.exit(0));
+      pool.end().finally(() => process.exit(0));
     });
   });
 }

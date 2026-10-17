@@ -1,8 +1,9 @@
-import { TrueSheet } from '@lodev09/react-native-true-sheet';
+import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useRef, useState, type ReactNode, type RefObject } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
@@ -11,57 +12,24 @@ import { Links } from '@/constants/links';
 import { PageGutter, Radii, Spacing, Typography } from '@/constants/theme';
 import { authErrorKey } from '@/domain/auth/errors';
 import { useAccountGate } from '@/domain/auth/session';
-import { SIGN_IN_SHEET } from '@/domain/auth/signInSheet';
 import { useSignInWithEmail, useSignUpWithEmail } from '@/domain/auth/useAuthMutations';
 import { useTheme } from '@/hooks/useTheme';
 
-import { Field } from './Field';
+import { Field } from './components/Field';
 import { validateSignIn, type SignInMode } from './validation';
 
 /**
- * Sign in or create an account with email and password.
+ * Sign in or create an account with email and password — the `/sign-in`
+ * route, presented as a native form sheet that sizes to its content.
  *
- * One sheet for the whole app, mounted in the root layout and opened with
- * `presentSignIn()` — from the account screen, or by an action that needs an
- * account (the heart). That action waits in `useAccountGate`: it runs when
- * sign-in succeeds and is dropped if the sheet is closed.
- *
- * A sheet rather than a screen: TrueSheet presents from the topmost screen, so
- * it also opens over the reel, whose product sheet is always presented.
+ * It opens from the account screen, or from an action that needs an account
+ * (the heart): that action waits in `useAccountGate` and runs once the person
+ * is signed in. Closing the sheet without signing in drops it.
  */
-export function SignInSheet() {
+export default function SignInView() {
   const theme = useTheme();
-  const scrollRef = useRef<ScrollView>(null);
-  // A new form each time the sheet opens.
-  const [visit, setVisit] = useState(0);
-  const clearAction = useAccountGate((state) => state.clear);
-
-  const handleDidDismiss = () => {
-    clearAction();
-    setVisit((current) => current + 1);
-  };
-
-  return (
-    <TrueSheet
-      name={SIGN_IN_SHEET}
-      detents={['auto']}
-      grabber
-      // iOS 26 draws a Liquid Glass sheet when no background is given.
-      backgroundColor={Platform.OS === 'ios' ? undefined : theme.background}
-      scrollableRef={scrollRef}
-      onDidDismiss={handleDidDismiss}
-    >
-      <SignInForm key={visit} scrollRef={scrollRef} />
-    </TrueSheet>
-  );
-}
-
-type SignInFormProps = {
-  scrollRef: RefObject<ScrollView | null>;
-};
-
-function SignInForm({ scrollRef }: SignInFormProps) {
-  const theme = useTheme();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
   const [mode, setMode] = useState<SignInMode>('signIn');
@@ -79,6 +47,11 @@ function SignInForm({ scrollRef }: SignInFormProps) {
   const mutation = mode === 'signIn' ? signIn : signUp;
 
   const releaseAction = useAccountGate((state) => state.release);
+  const clearAction = useAccountGate((state) => state.clear);
+
+  // Closed without signing in: the waiting action is dropped. After a sign-in
+  // it has already run, so clearing is a no-op.
+  useEffect(() => clearAction, [clearAction]);
 
   const errors = submitted ? validateSignIn(mode, { name, email, password }) : {};
   const serverError = mutation.error ? t(`auth.errors.${authErrorKey(mutation.error)}`) : null;
@@ -93,7 +66,7 @@ function SignInForm({ scrollRef }: SignInFormProps) {
     // Signed in: run what was waiting (the heart fills as the sheet slides away), then close.
     const onSuccess = () => {
       releaseAction();
-      void TrueSheet.dismiss(SIGN_IN_SHEET);
+      router.back();
     };
 
     if (mode === 'signIn') {
@@ -113,12 +86,7 @@ function SignInForm({ scrollRef }: SignInFormProps) {
   const copy = mode === 'signIn' ? 'auth.signIn' : 'auth.signUp';
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="interactive"
-      contentContainerStyle={styles.content}
-    >
+    <View style={[styles.content, { paddingBottom: insets.bottom + Spacing.four }]}>
       <View style={styles.header}>
         <Text accessibilityRole="header" style={Typography.title_22_bold}>
           {t(`${copy}.title`)}
@@ -208,7 +176,7 @@ function SignInForm({ scrollRef }: SignInFormProps) {
           }}
         />
       </Text>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -219,7 +187,7 @@ function LegalLink({ url, children }: { url: string; children?: ReactNode }) {
   return (
     <Text
       accessibilityRole="link"
-      onPress={() => void WebBrowser.openBrowserAsync(url)}
+      onPress={() => WebBrowser.openBrowserAsync(url)}
       style={[Typography.footnote_13_medium, { color: theme.textSecondary }]}
     >
       {children}
@@ -231,7 +199,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: PageGutter + Spacing.two,
     paddingTop: Spacing.five,
-    paddingBottom: Spacing.four,
     gap: Spacing.four,
   },
 
