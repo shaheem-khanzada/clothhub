@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { loadEnv } from '../../lib/env.js';
 import { authConfig } from './config.js';
 
+const KEY = '-----BEGIN PRIVATE KEY-----\nMIGTAgEAMBMG\n-----END PRIVATE KEY-----';
+
 const base = {
   DATABASE_URL: 'mysql://u:p@localhost:3306/clothhub_dev',
   BETTER_AUTH_SECRET: 'x'.repeat(32),
@@ -16,14 +18,57 @@ describe('authConfig', () => {
     expect(config).toMatchObject({ baseUrl: 'https://api.clothhub.digital', google: null, apple: null });
   });
 
-  it('switches a provider on only when all of its values are set', () => {
+  it('switches Google on only when both of its values are set', () => {
     const halfGoogle = authConfig(loadEnv({ ...base, GOOGLE_CLIENT_ID: 'id' }));
     const fullGoogle = authConfig(loadEnv({ ...base, GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret' }));
-    const apple = authConfig(loadEnv({ ...base, APPLE_CLIENT_ID: 'svc', APPLE_CLIENT_SECRET: 'jwt' }));
 
     expect(halfGoogle.google).toBeNull();
     expect(fullGoogle.google).toEqual({ clientId: 'id', clientSecret: 'secret' });
-    expect(apple.apple).toEqual({ clientId: 'svc', clientSecret: 'jwt', appBundleId: 'com.clothhub.digital' });
+  });
+
+  it('switches Apple on with the Team ID, Key ID and key, for the app\'s bundle id', () => {
+    const config = authConfig(
+      loadEnv({ ...base, APPLE_TEAM_ID: 'TEAM123456', APPLE_KEY_ID: 'KEY1234567', APPLE_PRIVATE_KEY: KEY }),
+    );
+
+    expect(config.apple).toEqual({
+      teamId: 'TEAM123456',
+      keyId: 'KEY1234567',
+      privateKey: KEY,
+      bundleId: 'com.clothhub.digital',
+    });
+  });
+
+  it('reads a key written on one line with \\n for the line breaks', () => {
+    const config = authConfig(
+      loadEnv({
+        ...base,
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: KEY.replaceAll('\n', '\\n'),
+      }),
+    );
+
+    expect(config.apple?.privateKey).toBe(KEY);
+  });
+
+  it('says how to fix a key that lost its lines (no quotes around it in .env)', () => {
+    expect(() =>
+      authConfig(
+        loadEnv({
+          ...base,
+          APPLE_TEAM_ID: 'TEAM123456',
+          APPLE_KEY_ID: 'KEY1234567',
+          APPLE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----',
+        }),
+      ),
+    ).toThrow('wrap the value in double quotes');
+  });
+
+  it('refuses to start with only some of Apple\'s values', () => {
+    expect(() => authConfig(loadEnv({ ...base, APPLE_TEAM_ID: 'TEAM123456' }))).toThrow(
+      'also set APPLE_KEY_ID and APPLE_PRIVATE_KEY',
+    );
   });
 
   it('refuses to start the server without a secret and public URL', () => {

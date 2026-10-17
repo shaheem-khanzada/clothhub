@@ -27,6 +27,7 @@ describe('GET /openapi.json', () => {
       '/v1/brands',
       '/v1/brands/{brandId}',
       '/v1/me',
+      '/v1/me/apple-authorization',
       '/v1/products',
       '/v1/products/{productId}',
     ]);

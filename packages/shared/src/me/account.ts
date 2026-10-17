@@ -20,3 +20,16 @@ export const MeResponseSchema = z
   .meta({ id: 'Me' });
 
 export type MeResponse = z.infer<typeof MeResponseSchema>;
+
+/**
+ * Sent by the app straight after a Sign in with Apple: the one-time code from
+ * that sign-in, which lets the API revoke the app's access to the person's
+ * Apple ID if they delete their account.
+ */
+export const AppleAuthorizationRequestSchema = z
+  .object({
+    authorizationCode: z.string().min(1).max(2048),
+  })
+  .meta({ id: 'AppleAuthorizationRequest' });
+
+export type AppleAuthorizationRequest = z.infer<typeof AppleAuthorizationRequestSchema>;

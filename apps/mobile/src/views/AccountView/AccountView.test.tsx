@@ -54,6 +54,14 @@ describe('AccountView', () => {
     expect(screen.getByText('AL')).toBeOnTheScreen();
   });
 
+  it('shows the email when there is no name (Apple didn\'t share one)', async () => {
+    signInAs({ name: '', email: 'x7q2@privaterelay.appleid.com' });
+    await renderAccount();
+
+    expect(screen.getByRole('header', { name: 'x7q2@privaterelay.appleid.com' })).toBeOnTheScreen();
+    expect(screen.getByText('X')).toBeOnTheScreen();
+  });
+
   it('signs out', async () => {
     signInAs();
     await renderAccount();

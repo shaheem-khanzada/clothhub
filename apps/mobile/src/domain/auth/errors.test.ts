@@ -22,6 +22,7 @@ describe('authErrorKey', () => {
   it.each([
     ['INVALID_EMAIL_OR_PASSWORD', 401, 'invalidCredentials'],
     ['USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL', 422, 'emailTaken'],
+    ['OAUTH_LINK_ERROR', 401, 'signInWithEmailInstead'],
     ['PASSWORD_TOO_SHORT', 400, 'passwordTooShort'],
     ['TOO_MANY_REQUESTS', 429, 'tooManyAttempts'],
     ['UNKNOWN', 0, 'network'],

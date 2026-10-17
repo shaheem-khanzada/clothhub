@@ -37,10 +37,18 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_ID: optional(z.string().min(1)),
   GOOGLE_CLIENT_SECRET: optional(z.string().min(1)),
 
-  /** Sign in with Apple: the Services ID and its signed client secret (a JWT). Off until both are set. */
-  APPLE_CLIENT_ID: optional(z.string().min(1)),
-  APPLE_CLIENT_SECRET: optional(z.string().min(1)),
-  /** The iOS app's bundle id, which Apple puts in the identity token of a native sign-in. */
+  /**
+   * Sign in with Apple, from the key made under developer.apple.com → Keys.
+   * Off until all three are set. The Team ID and Key ID are 10 characters.
+   */
+  APPLE_TEAM_ID: optional(z.string().length(10)),
+  APPLE_KEY_ID: optional(z.string().length(10)),
+  /**
+   * The key's .p8 file, BEGIN and END lines included. Multi-line in double
+   * quotes, or on one line with `\n` where the line breaks are.
+   */
+  APPLE_PRIVATE_KEY: optional(z.string().min(1).transform((key) => key.replaceAll('\\n', '\n').trim())),
+  /** The iOS app's bundle id: what Apple addresses the app's identity tokens to. */
   APPLE_APP_BUNDLE_ID: z.string().min(1).default('com.clothhub.digital'),
 });
 

@@ -1,4 +1,4 @@
-import { ErrorResponseSchema, MeResponseSchema } from '@clothhub/shared';
+import { AppleAuthorizationRequestSchema, ErrorResponseSchema, MeResponseSchema } from '@clothhub/shared';
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import type { AppEnv } from '../../lib/hono.js';
@@ -40,6 +40,24 @@ const deleteMe = createRoute({
   },
 });
 
+const saveAppleAuthorization = createRoute({
+  method: 'post',
+  path: '/v1/me/apple-authorization',
+  tags: ['Me'],
+  summary: 'Keep the Apple sign-in revocable',
+  description:
+    'Sent by the app right after Sign in with Apple, with that sign-in\'s one-time authorization code. ' +
+    'The API exchanges it for a refresh token, so deleting the account can revoke the app\'s access to the Apple ID.',
+  request: { body: { required: true, content: json(AppleAuthorizationRequestSchema) } },
+  responses: {
+    204: { description: 'Saved' },
+    400: { description: 'Apple refused the code (expired or already used)', content: json(ErrorResponseSchema) },
+    401: unauthorized,
+    403: { description: 'The code is for a different Apple ID', content: json(ErrorResponseSchema) },
+    404: { description: 'This account has no Apple sign-in', content: json(ErrorResponseSchema) },
+  },
+});
+
 export function meRoutes(service: MeService) {
   const app = new OpenAPIHono<AppEnv>({ defaultHook: validationHook });
 
@@ -48,6 +66,16 @@ export function meRoutes(service: MeService) {
 
     c.header('Cache-Control', PRIVATE);
     return c.json({ account: { id, name, email, imageUrl } }, 200);
+  });
+
+  app.openapi(saveAppleAuthorization, async (c) => {
+    const user = requireUser(c);
+    const { authorizationCode } = c.req.valid('json');
+
+    await service.saveAppleAuthorization(user.id, authorizationCode);
+
+    c.header('Cache-Control', PRIVATE);
+    return c.body(null, 204);
   });
 
   app.openapi(deleteMe, async (c) => {

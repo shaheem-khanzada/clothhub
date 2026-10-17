@@ -80,14 +80,17 @@ export default function AccountView() {
         ) : (
           <>
             <View style={styles.profile}>
-              <Avatar name={session.user.name} size={72} />
+              {/* Apple shares a name only on the first sign-in, and not always: then the email stands in. */}
+              <Avatar name={session.user.name || session.user.email} size={72} />
               <View style={styles.profileText}>
                 <Text accessibilityRole="header" style={[Typography.title_22_bold, styles.center]}>
-                  {session.user.name}
+                  {session.user.name || session.user.email}
                 </Text>
-                <Text style={[Typography.subhead_15_regular, styles.center, { color: theme.textSecondary }]}>
-                  {session.user.email}
-                </Text>
+                {session.user.name ? (
+                  <Text style={[Typography.subhead_15_regular, styles.center, { color: theme.textSecondary }]}>
+                    {session.user.email}
+                  </Text>
+                ) : null}
               </View>
             </View>
 

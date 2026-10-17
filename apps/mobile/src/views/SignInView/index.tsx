@@ -20,7 +20,7 @@ import { SocialSignIn } from './components/SocialSignIn';
 import { validateSignIn, type SignInMode } from './validation';
 
 /**
- * Sign in or create an account: Apple or Google (coming soon), or email and
+ * Sign in or create an account: Apple, Google (coming soon), or email and
  * password. The `/sign-in` route, presented as a native form sheet that sizes
  * to its content.
  *
@@ -58,6 +58,12 @@ export default function SignInView() {
   const errors = submitted ? validateSignIn(mode, { name, email, password }) : {};
   const serverError = mutation.error ? t(`auth.errors.${authErrorKey(mutation.error)}`) : null;
 
+  // Signed in: run what was waiting (the heart fills as the sheet slides away), then close.
+  const handleSignedIn = () => {
+    releaseAction();
+    router.back();
+  };
+
   const handleSubmit = () => {
     setSubmitted(true);
 
@@ -65,16 +71,10 @@ export default function SignInView() {
       return;
     }
 
-    // Signed in: run what was waiting (the heart fills as the sheet slides away), then close.
-    const onSuccess = () => {
-      releaseAction();
-      router.back();
-    };
-
     if (mode === 'signIn') {
-      signIn.mutate({ email, password }, { onSuccess });
+      signIn.mutate({ email, password }, { onSuccess: handleSignedIn });
     } else {
-      signUp.mutate({ name, email, password }, { onSuccess });
+      signUp.mutate({ name, email, password }, { onSuccess: handleSignedIn });
     }
   };
 
@@ -98,7 +98,7 @@ export default function SignInView() {
         </Text>
       </View>
 
-      <SocialSignIn />
+      <SocialSignIn onSignedIn={handleSignedIn} />
 
       <View style={styles.fields}>
         {mode === 'signUp' ? (

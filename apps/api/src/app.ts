@@ -8,6 +8,7 @@ import { ApiError, errorBody, sendError } from './lib/errors.js';
 import type { AppEnv } from './lib/hono.js';
 import type { Logger } from './lib/logger.js';
 import { sessionMiddleware } from './lib/session.js';
+import type { AppleSignIn } from './modules/auth/apple.js';
 import { type Auth, AUTH_BASE_PATH } from './modules/auth/auth.js';
 import { betterAuthSessionLookup } from './modules/auth/session.js';
 import { catalogRoutes } from './modules/catalog/routes.js';
@@ -24,6 +25,8 @@ export type AppDependencies = {
    * involve accounts leave it out, and then nobody is ever signed in.
    */
   auth?: Auth;
+  /** Sign in with Apple's token exchange and revoke; null or left out when Apple isn't configured. */
+  apple?: AppleSignIn | null;
 };
 
 /**
@@ -32,7 +35,7 @@ export type AppDependencies = {
  *
  * Modules mount here as they are built.
  */
-export function createApp({ db, logger, auth }: AppDependencies) {
+export function createApp({ db, logger, auth, apple = null }: AppDependencies) {
   const app = new OpenAPIHono<AppEnv>();
 
   app.use(requestId());
@@ -75,7 +78,7 @@ export function createApp({ db, logger, auth }: AppDependencies) {
 
   app.route('/', healthRoutes);
   app.route('/', catalogRoutes(new CatalogService(db)));
-  app.route('/', meRoutes(new MeService(db)));
+  app.route('/', meRoutes(new MeService(db, apple, logger)));
 
   app.doc31('/openapi.json', {
     openapi: '3.1.0',

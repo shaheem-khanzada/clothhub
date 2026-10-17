@@ -5,27 +5,44 @@ import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
 import { Text } from '@/components/ui/Text';
 import { Spacing, Typography } from '@/constants/theme';
+import { authErrorKey } from '@/domain/auth/errors';
+import { useSignInWithApple } from '@/domain/auth/useAuthMutations';
 import { useTheme } from '@/hooks/useTheme';
 import { isIos } from '@/lib/deviceInfo';
 
-type Provider = 'apple' | 'google';
+type SocialSignInProps = {
+  /** Called once the person is signed in. */
+  onSignedIn: () => void;
+};
 
 /**
  * Continue with Apple / Google, above the email form.
  *
- * The buttons are final; signing in with them arrives with the Apple and
- * Google credentials, so for now a tap says it's coming. Apple is iOS only:
- * that's where App Review requires it next to Google, and on Android it would
- * need the web flow.
+ * Apple signs in natively and is iOS only: that's where App Review requires
+ * it next to Google, and on Android it would need the web flow. Google's
+ * button says it's coming until its credentials exist.
  */
-export function SocialSignIn() {
+export function SocialSignIn({ onSignedIn }: SocialSignInProps) {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  const handlePress = (provider: Provider) => {
+  const apple = useSignInWithApple();
+  const appleError = apple.error ? t(`auth.errors.${authErrorKey(apple.error)}`) : null;
+
+  const handleApple = () => {
+    apple.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result === 'signedIn') {
+          onSignedIn();
+        }
+      },
+    });
+  };
+
+  const handleGoogle = () => {
     Alert.alert(
       t('auth.social.comingSoonTitle'),
-      t('auth.social.comingSoonMessage', { provider: t(`auth.social.${provider}Name`) }),
+      t('auth.social.comingSoonMessage', { provider: t('auth.social.googleName') }),
     );
   };
 
@@ -36,7 +53,8 @@ export function SocialSignIn() {
           variant="inverse"
           title={t('auth.social.apple')}
           leftIcon="apple.fill"
-          onPress={() => handlePress('apple')}
+          loading={apple.isPending}
+          onPress={handleApple}
         />
       ) : null}
 
@@ -44,9 +62,19 @@ export function SocialSignIn() {
         variant="surface"
         title={t('auth.social.google')}
         leftIcon="google.color"
+        disabled={apple.isPending}
         style={{ backgroundColor: theme.sheetFill }}
-        onPress={() => handlePress('google')}
+        onPress={handleGoogle}
       />
+
+      {appleError ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[Typography.subhead_15_regular, styles.error, { color: theme.danger }]}
+        >
+          {appleError}
+        </Text>
+      ) : null}
 
       <View style={styles.divider}>
         <Separator style={styles.rule} />
@@ -62,6 +90,10 @@ export function SocialSignIn() {
 const styles = StyleSheet.create({
   container: {
     gap: Spacing.twoAndOne,
+  },
+
+  error: {
+    textAlign: 'center',
   },
 
   divider: {

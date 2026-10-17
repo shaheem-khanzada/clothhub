@@ -32,6 +32,7 @@ export function unwrap<T>(result: AuthResult<T>): T {
 export type AuthErrorKey =
   | 'invalidCredentials'
   | 'emailTaken'
+  | 'signInWithEmailInstead'
   | 'invalidEmail'
   | 'passwordTooShort'
   | 'passwordTooLong'
@@ -50,6 +51,10 @@ export function authErrorKey(error: unknown): AuthErrorKey {
     case 'USER_ALREADY_EXISTS':
     case 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL':
       return 'emailTaken';
+    // Apple/Google found an email+password account with the same email that
+    // isn't verified yet; linking to it could hand the account to whoever made it.
+    case 'OAUTH_LINK_ERROR':
+      return 'signInWithEmailInstead';
     case 'INVALID_EMAIL':
       return 'invalidEmail';
     case 'PASSWORD_TOO_SHORT':

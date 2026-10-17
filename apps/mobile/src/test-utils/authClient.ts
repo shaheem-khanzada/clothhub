@@ -28,7 +28,10 @@ export const authClientMock = {
     return { data: user ? { user, session: { id: 'session-1' } } : null, isPending: false, error: null };
   },
   getCookie: jest.fn(async () => ''),
-  signIn: { email: jest.fn(() => ok({ user: {} })) },
+  signIn: {
+    email: jest.fn(() => ok({ user: {} })),
+    social: jest.fn(() => ok({ redirect: false, user: {} })),
+  },
   signUp: { email: jest.fn(() => ok({ user: {} })) },
   signOut: jest.fn(() => ok({ success: true })),
 };

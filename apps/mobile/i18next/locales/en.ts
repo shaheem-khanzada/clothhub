@@ -51,6 +51,7 @@ const en = {
       errors: {
         invalidCredentials: 'That email and password don’t match.',
         emailTaken: 'There’s already an account with this email. Sign in instead.',
+        signInWithEmailInstead: 'You already have a ClothHub account with this email. Sign in with your email and password.',
         invalidEmail: 'Enter a valid email address.',
         passwordTooShort: 'Use at least 8 characters.',
         passwordTooLong: 'That password is too long.',

@@ -87,9 +87,14 @@ BETTER_AUTH_URL=<this app's public URL, e.g. https://api.clothhub.digital>
 The server refuses to start without `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` (sign-in), so add them
 before deploying a build that has sign-in. Changing the secret signs everyone out.
 
-Apple and Google sign-in switch on when their values are set (`APPLE_CLIENT_ID` + `APPLE_CLIENT_SECRET`,
-`GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`; see `.env.example`); the startup log line "Sign-in methods"
-says which are on.
+Apple and Google sign-in switch on when their values are set; the startup log line "Sign-in methods"
+says which are on (see `.env.example`):
+
+- **Apple:** `APPLE_TEAM_ID`, `APPLE_KEY_ID` and `APPLE_PRIVATE_KEY` (the Sign in with Apple key's `.p8`
+  contents, BEGIN/END lines included; Coolify takes a multi-line value). The server signs Apple's short-lived
+  client secret from the key itself, so nothing expires. Only some of the three set, or a key that doesn't
+  load, stops the server at startup.
+- **Google:** `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`.
 
 ## 3. The ingest job (once per environment)
 

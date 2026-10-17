@@ -66,9 +66,11 @@ export function createAuth({ db, config, logger }: AuthDependencies) {
       }),
       ...(config.apple && {
         apple: {
-          clientId: config.apple.clientId,
-          clientSecret: config.apple.clientSecret,
-          appBundleIdentifier: config.apple.appBundleId,
+          // Native sign-in only: Better Auth checks the identity token, addressed
+          // to the bundle id, against Apple's public keys. No client secret is
+          // needed for that; the token exchange and revoke are in `apple.ts`.
+          clientId: config.apple.bundleId,
+          appBundleIdentifier: config.apple.bundleId,
         },
       }),
     },
@@ -99,6 +101,8 @@ export function createAuth({ db, config, logger }: AuthDependencies) {
 
     logger: {
       disabled: !logger,
+      // Everything goes to pino, which filters by LOG_LEVEL: why an identity token was refused shows up as a warning.
+      level: 'debug',
       log: (level, message, ...args) => {
         const fields = args.length > 0 ? { args } : {};
         if (level === 'error') logger?.error(fields, `auth: ${message}`);
