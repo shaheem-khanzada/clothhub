@@ -21,7 +21,9 @@ export type ButtonVariant =
   /** A filled secondary control: toolbar buttons, sheet actions. */
   | 'surface'
   /** Plain inline text action — no fill, no box. */
-  | 'link';
+  | 'link'
+  /** White fill, dark label: Apple's Sign in with Apple style for dark backgrounds. */
+  | 'inverse';
 
 /**
  * lg is the full-width CTA (Visit Brand), md a toolbar or sheet button,
@@ -76,6 +78,11 @@ export function Button({
     link: {
       backgroundColor: 'transparent',
       contentColor: theme.text,
+    },
+
+    inverse: {
+      backgroundColor: theme.text,
+      contentColor: theme.background,
     },
   } satisfies Record<
     ButtonVariant,

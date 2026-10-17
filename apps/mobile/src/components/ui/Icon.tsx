@@ -1,5 +1,6 @@
 import type { SvgProps } from 'react-native-svg';
 
+import AppleFill from '@/assets/icons/apple.fill.svg';
 import CheckOutline from '@/assets/icons/check.outline.svg';
 import ChevronDownOutline from '@/assets/icons/chevron.down.outline.svg';
 import ChevronLeftOutline from '@/assets/icons/chevron.left.outline.svg';
@@ -7,11 +8,13 @@ import ChevronRightOutline from '@/assets/icons/chevron.right.outline.svg';
 import CloseOutline from '@/assets/icons/close.outline.svg';
 import DetailsOutline from '@/assets/icons/details.outline.svg';
 import FilterOutline from '@/assets/icons/filter.outline.svg';
+import GoogleColor from '@/assets/icons/google.color.svg';
 import HeartFill from '@/assets/icons/heart.fill.svg';
 import HeartOutline from '@/assets/icons/heart.outline.svg';
 import MoreOutline from '@/assets/icons/more.outline.svg';
 import OpenFill from '@/assets/icons/open.fill.svg';
 import OpenOutline from '@/assets/icons/open.outline.svg';
+import PersonOutline from '@/assets/icons/person.outline.svg';
 import SearchOutline from '@/assets/icons/search.outline.svg';
 import ShareFill from '@/assets/icons/share.fill.svg';
 import ShareOutline from '@/assets/icons/share.outline.svg';
@@ -22,6 +25,8 @@ import SwipeUpOutline from '@/assets/icons/swipe.up.outline.svg';
 import TagOutline from '@/assets/icons/tag.outline.svg';
 
 export const icons = {
+  /** Sign in with Apple only. */
+  'apple.fill': AppleFill,
   'check.outline': CheckOutline,
 
   'chevron.down.outline': ChevronDownOutline,
@@ -31,11 +36,14 @@ export const icons = {
   'close.outline': CloseOutline,
   'details.outline': DetailsOutline,
   'filter.outline': FilterOutline,
+  /** Google's four-colour G, for Continue with Google. Ignores `color`. */
+  'google.color': GoogleColor,
   'heart.fill': HeartFill,
   'heart.outline': HeartOutline,
   'more.outline': MoreOutline,
   'open.fill': OpenFill,
   'open.outline': OpenOutline,
+  'person.outline': PersonOutline,
   'search.outline': SearchOutline,
   'share.fill': ShareFill,
   'share.outline': ShareOutline,

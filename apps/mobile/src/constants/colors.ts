@@ -88,10 +88,17 @@ const darkTheme = {
   skeleton: palette.shimmer,
 
   /**
+   * The body of a sheet where there's no Liquid Glass (Android). A step up
+   * from `background`, so a sheet reads as a layer above the page rather than
+   * black on black.
+   */
+  sheetBackground: palette.graphite,
+
+  /**
    * Grouped rows, inputs and chips inside sheets. Translucent rather than a
-   * grey: on iOS 26 the sheets are Liquid Glass and a solid grey would sit on
-   * them as a slab; on Android's dark sheet these come out the same as
-   * `surface` / `surfaceRaised`.
+   * grey, so they're one step up from whatever is behind them: the Liquid
+   * Glass of an iOS 26 sheet (where a solid grey would sit as a slab) or
+   * `sheetBackground` on Android.
    */
   sheetFill: palette.wash,
   sheetFillStrong: palette.washStrong,

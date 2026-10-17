@@ -10,7 +10,8 @@ export function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: { retry: false, gcTime: Infinity, staleTime: 5 * 60 * 1000 },
-      mutations: { retry: false },
+      // gcTime Infinity: no clean-up timers left running to keep Jest from exiting.
+      mutations: { retry: false, gcTime: Infinity },
     },
   });
 }

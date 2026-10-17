@@ -37,9 +37,10 @@ npm workspaces; install once from the root with `npm install`. Never run
   server.
 - **Shared code is plain TypeScript with extensionless imports** in
   `packages/shared`, so Metro, tsx and tsup all resolve it.
-- **Sign-in is planned for a later phase.** Keep the seams described in
-  `docs/architecture.md` §7: the API's `sessionMiddleware` / `requireUser`,
-  the app's `useSession()` / `useRequireAccount()`, and user-keyed tables.
+- **Sign-in goes through its seams** (`docs/architecture.md` §7): the API's
+  `sessionMiddleware` / `requireUser`, the app's `useSession()` /
+  `useRequireAccount()`, and tables keyed by `users.id`. Nothing else reads
+  sessions or tokens.
 
 ## Before handing work back
 

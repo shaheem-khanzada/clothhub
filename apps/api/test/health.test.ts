@@ -26,11 +26,13 @@ describe('GET /openapi.json', () => {
       '/health',
       '/v1/brands',
       '/v1/brands/{brandId}',
+      '/v1/me',
+      '/v1/me/apple-authorization',
       '/v1/products',
       '/v1/products/{productId}',
     ]);
     expect(Object.keys(doc.components.schemas)).toEqual(
-      expect.arrayContaining(['Brand', 'BrandList', 'Product', 'ProductPage', 'ErrorResponse']),
+      expect.arrayContaining(['Brand', 'BrandList', 'Product', 'ProductPage', 'Me', 'Account', 'ErrorResponse']),
     );
   });
 });

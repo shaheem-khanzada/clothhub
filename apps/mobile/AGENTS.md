@@ -10,7 +10,7 @@ ClothHub is a Pakistan-first fashion discovery app: products from many brands in
 
 The app has three screens: Brands, then a brand's Products, then the Product reel with its detail sheet.
 
-Data comes from the ClothHub API (`apps/api`). There is no login yet: favourites (the heart) are saved on the device. Collections are out of scope. Do not add features outside this scope without being asked.
+Data comes from the ClothHub API (`apps/api`). People sign in with email and password (Apple and Google come when their credentials exist); the account screen signs out and deletes the account. Favourites (the heart) need an account but are still saved on the device until they sync. Collections are out of scope. Do not add features outside this scope without being asked.
 
 ## Architecture
 
@@ -24,12 +24,12 @@ src/
     ui/           Design-system primitives (Text, Button, Chip, Switch, RangeSlider…).
     catalog/      Catalog pieces shared by more than one screen.
   domain/catalog/ types, mapper, api, queryKeys, query hooks, browse store.
-  domain/auth/    the sign-in seam: useSession(), useRequireAccount().
+  domain/auth/    useSession(), useRequireAccount(), the sign-in mutations and their error messages.
   domain/favorites/ the hearts, on the device (Zustand + MMKV).
   axios/          the HTTP client and ApiError.
   test-utils/     API response fixtures and a React Query test wrapper.
   constants/      colors, typography, spacing, layout. Import them via '@/constants/theme'.
-  lib/            queryClient, queryPersistence, mmkv, formatters, images, photoMetrics, feedback (haptics).
+  lib/            queryClient, queryPersistence, mmkv, authClient, formatters, images, photoMetrics, feedback (haptics).
 i18next/          i18next setup and the en locale.
 assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name="…" />.
 ```
@@ -42,8 +42,11 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 - Client state shared across screens goes in Zustand. Today that is only `useBrowseStore`: per-brand sort, filters and search.
   - The product list and the reel read the same params, so they share one cache entry.
 - MMKV is only for deliberate persistence: "gesture guide seen", favourites, and the saved query cache.
+- The session lives in SecureStore, through `lib/authClient` (Better Auth's Expo client); `apiClient` attaches it to every request. Never copy it into MMKV or React Query.
 - The brand list and the first page of recently visited product lists are saved to MMKV (`lib/queryPersistence.ts`) for an instant cold start. Bump `QUERY_CACHE_VERSION` when a saved response shape changes.
-- Actions that will belong to an account (saving, collecting) go through `useRequireAccount()` — today it runs them on the device; with sign-in it opens the sign-in sheet first.
+- Actions that belong to an account (saving, collecting) go through `useRequireAccount()`: signed in, they run at once; signed out, `/sign-in` opens and the action runs after sign-in (`useAccountGate`).
+- Screens that are forms (sign-in) are routes presented as native form sheets (`presentation: 'formSheet'`, `sheetAllowedDetents: 'fitToContents'`), not TrueSheets. TrueSheet is for sheets that live inside a screen, like the reel's product sheet. iOS can't present a form-sheet route while a screen presents a TrueSheet, so the reel dismisses its product sheet before sign-in opens and presents it again when it regains focus.
+- Screens ask who is signed in with `useSession()` and sign in/out through the mutations in `domain/auth/useAuthMutations.ts`, never through `authClient` directly.
 - A sheet keeps its draft state locally and commits it on Apply.
 
 ### Data
@@ -82,6 +85,6 @@ assets/icons/     24×24 SVGs that use currentColor, exposed through <Icon name=
 ### Quality
 
 - Run `npm run typecheck` and `npm test` before handing work back.
-- Tests are Jest (jest-expo) + React Native Testing Library, next to the code as `*.test.ts(x)`. `render` and `renderHook` are async (`await render(…)`). Mock HTTP with `axios-mock-adapter` on `apiClient`; build responses with `test-utils/fixtures`.
+- Tests are Jest (jest-expo) + React Native Testing Library, next to the code as `*.test.ts(x)`. Sign-in is replaced by `test-utils/authClient`: choose who is signed in with `signInAs()` / `signOutForTest()`. `render` and `renderHook` are async (`await render(…)`). Mock HTTP with `axios-mock-adapter` on `apiClient`; build responses with `test-utils/fixtures`.
 - React Compiler is on: no ref reads or shared-value writes during render.
 - Native modules are used (MMKV, TrueSheet, Pulsar, glass), so use a dev build. Expo Go is not supported.

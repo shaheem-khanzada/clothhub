@@ -1,8 +1,8 @@
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Platform } from 'react-native';
 
+import { isIos } from '@/lib/deviceInfo';
 import { feedback } from '@/lib/feedback';
 
 import { MORE_SHEET, MoreSheet } from './MoreSheet';
@@ -30,7 +30,7 @@ type ReelToolbarProps = {
  * icons, so it keeps the drawn glass buttons and a sheet for the menu.
  */
 export function ReelToolbar(props: ReelToolbarProps) {
-  return Platform.OS === 'ios' ? <NativeToolbar {...props} /> : <DrawnToolbar {...props} />;
+  return isIos ? <NativeToolbar {...props} /> : <DrawnToolbar {...props} />;
 }
 
 function NativeToolbar({

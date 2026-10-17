@@ -1,5 +1,4 @@
 import {
-  Platform,
   Pressable,
   StyleSheet,
   type StyleProp,
@@ -11,6 +10,7 @@ import { Icon } from '@/components/ui/Icon';
 import { TextInput, type TextInputProps } from '@/components/ui/TextInput';
 import { Radii, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
+import { isAndroid } from '@/lib/deviceInfo';
 
 type SearchInputProps = TextInputProps & {
   containerStyle?: StyleProp<ViewStyle>;
@@ -62,7 +62,7 @@ export function SearchInput({
         ]}
       />
 
-      {Platform.OS === 'android' && onClear && props.value ? (
+      {isAndroid && onClear && props.value ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={clearAccessibilityLabel}

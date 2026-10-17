@@ -15,7 +15,7 @@ small, contained change.
 | Database | **MySQL 8.4 on the scraper's server**, in ClothHub's own databases (`clothhub_dev`, `clothhub_prod`). The scraper's database is never written to |
 | ORM / migrations | **Drizzle ORM** (mysql2) + Drizzle Kit migrations |
 | Search | MySQL FULLTEXT (name, title, brand/type/tags/fabric/colour text) + LIKE for short words and codes. No separate search engine in V1 |
-| Auth (last phase) | **Better Auth** inside the API, on the same database: Sign in with Apple, Google, email one-time code |
+| Auth | **Better Auth** inside the API, on the same database: email + password today; Sign in with Apple and Google (native ID tokens) when their credentials exist |
 | Runtime | Everything runs from **Docker**. One image for the API and one for the landing site, deployed on **Coolify** (Hostinger) |
 | Environments | **Development** (auto-deploys from `main`) and **production** (deployed by hand) — see `docs/deployment.md` |
 | Tests | API: Vitest, unit + integration against a real MySQL. Mobile: Jest (jest-expo) + React Native Testing Library. CI runs both |
@@ -137,22 +137,25 @@ full catalogue (124k listed products).
 | 3 | **Catalogue API** — endpoints, OpenAPI, tests | ✅ 138 API tests (unit + MySQL integration) |
 | 4 | **Mobile on the API** — real `api.ts`, env URL, React Query + Zustand, tests | ✅ 37 mobile tests |
 | 5 | **Dev + production on Coolify** — databases, two API apps, scheduled ingest; app pointed at dev | Next — `docs/deployment.md` |
-| 6 | **Sign-in** — Better Auth: Apple, Google, email code; sign-in sheet; delete account | |
+| 6 | **Sign-in** — Better Auth: email + password, Apple, Google; sign-in sheet; account screen; delete account | Email ✅ — Apple and Google need credentials |
 | 7 | **Synced saves** — favourites and collections per account; local hearts merged on first sign-in | |
 
 ---
 
-## 7. Built now so sign-in is easy later
+## 7. How sign-in fits in
 
-- **API:** `sessionMiddleware` runs on every request and sets `c.get('user')` — always `null` until phase
-  6, which swaps in Better Auth's session lookup. Routes that need an account call `requireUser(c)`
-  (401 `unauthorized`). No route changes in phase 6.
-- **Database:** Better Auth's tables get their own schema file. App data that belongs to a user
-  (`favorites`, `collections`, `collection_items`) is keyed by `user_id` from the start.
-- **Mobile:** `useSession()` (always signed out for now) and `useRequireAccount()`, which every
-  save/collect action goes through (`useToggleFavorite`). Today the gate runs the action on the device;
-  in phase 6 it opens the sign-in sheet first. The favourites store is already a local cache with a
-  `toggle`; phase 7 adds a sync step and screens keep the same hooks.
+- **API:** Better Auth answers `/api/auth/*` (sign-up, sign-in, sign-out, session; Apple and Google
+  sign-in with the app's native ID token). `sessionMiddleware` turns the session cookie into
+  `c.get('user')` on every request (no database work when there is no cookie); routes that need an
+  account call `requireUser(c)` (401 `unauthorized`). `/v1/me` is the signed-in person: `GET` the
+  account, `DELETE` it.
+- **Database:** Better Auth's tables are `db/schema/auth.ts`. App data that belongs to a user
+  (`favorites`, `collections`, `collection_items`) references `users.id` with ON DELETE CASCADE, so
+  deleting the account removes it.
+- **Mobile:** `useSession()` and `useRequireAccount()`, which every save/collect action goes through
+  (`useToggleFavorite`): signed in, the action runs; signed out, the sign-in sheet opens and the action
+  runs after sign-in. The session cookie is kept in SecureStore and sent by `apiClient`. The favourites
+  store is still a local cache with a `toggle`; phase 7 adds a sync step and screens keep the same hooks.
 
 ---
 

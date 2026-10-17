@@ -1,7 +1,7 @@
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Button } from '@/components/ui/Button';
@@ -28,6 +28,7 @@ import type {
   ProductFilters,
 } from '@/domain/catalog/types';
 import { useTheme } from '@/hooks/useTheme';
+import { isIos } from '@/lib/deviceInfo';
 import { formatPrice } from '@/lib/formatters';
 
 export const FILTER_SHEET = 'product-filters';
@@ -84,7 +85,7 @@ export function FilterSheet({ facets, filters, onApply }: FilterSheetProps) {
       detents={['auto']}
       grabber
       // iOS 26 draws a Liquid Glass sheet when no background is given.
-      backgroundColor={Platform.OS === 'ios' ? undefined : theme.background}
+      backgroundColor={isIos ? undefined : theme.sheetBackground}
       onWillPresent={handleWillPresent}
       header={
         <HStack alignItems="center" justifyContent="space-between" style={styles.header}>

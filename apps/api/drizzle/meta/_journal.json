@@ -36,6 +36,13 @@
       "when": 1792014298820,
       "tag": "0004_image_thumbhash",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1792185481162,
+      "tag": "0005_auth",
+      "breakpoints": true
     }
   ]
 }

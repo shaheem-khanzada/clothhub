@@ -21,3 +21,17 @@ jest.mock('react-native-mmkv', () => {
 
   return { createMMKV: createMockMMKV };
 });
+
+// Google sign-in is a native module. Tests stub `GoogleSignin.signIn` with the response they need.
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: { configure: jest.fn(), hasPlayServices: jest.fn(), signIn: jest.fn() },
+  isCancelledResponse: (response: { type: string }) => response.type === 'cancelled',
+  isErrorWithCode: (error: unknown) => error instanceof Error && 'code' in error,
+  statusCodes: { IN_PROGRESS: 'IN_PROGRESS' },
+}));
+
+// Sign-in talks to the API through Better Auth's client; tests use a stand-in
+// whose session they set with signInAs() / signOutForTest().
+jest.mock('@/lib/authClient', () => ({
+  authClient: jest.requireActual('@/test-utils/authClient').authClientMock,
+}));

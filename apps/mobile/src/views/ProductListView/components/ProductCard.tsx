@@ -29,52 +29,58 @@ export function ProductCard({ product, width, onPress }: ProductCardProps) {
 
   const cover = product.images[0];
 
+  // The heart sits over the card, not inside its Pressable: on iOS it's a
+  // native SwiftUI button that React Native's touch system can't see claim
+  // the tap, so inside the card one tap would save *and* open the reel. As a
+  // sibling it's also its own VoiceOver element.
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={product.title}
-      onPress={() => onPress(product)}
-      style={({ pressed }) => [{ width }, pressed && styles.pressed]}
-    >
-      <View style={[styles.imageFrame, { backgroundColor: theme.surface }]}>
-        <ProductImage
-          uri={cover}
-          width={width}
-          tone={toneOf(product.colors)}
-          thumbhash={product.coverThumbhash}
-          recyclingKey={product.id}
-          style={StyleSheet.absoluteFill}
-        />
+    <View style={{ width }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={product.title}
+        onPress={() => onPress(product)}
+        style={({ pressed }) => pressed && styles.pressed}
+      >
+        <View style={[styles.imageFrame, { backgroundColor: theme.surface }]}>
+          <ProductImage
+            uri={cover}
+            width={width}
+            tone={toneOf(product.colors)}
+            thumbhash={product.coverThumbhash}
+            recyclingKey={product.id}
+            style={StyleSheet.absoluteFill}
+          />
 
-        {!product.inStock ? (
-          <View style={[styles.stockLabel, { backgroundColor: theme.scrim }]}>
-            <Text style={Typography.caption_11_bold}>
-              {t('catalog.common.outOfStock')}
-            </Text>
-          </View>
-        ) : null}
+          {!product.inStock ? (
+            <View style={[styles.stockLabel, { backgroundColor: theme.scrim }]}>
+              <Text style={Typography.caption_11_bold}>
+                {t('catalog.common.outOfStock')}
+              </Text>
+            </View>
+          ) : null}
+        </View>
 
-        <LikeButton
-          liked={liked}
-          onToggle={() => toggleFavorite(product.id)}
-          size={32}
-          iconSize={15}
-          style={styles.save}
-        />
-      </View>
+        <VStack space="one" style={styles.info}>
+          <Text numberOfLines={2} style={Typography.footnote_13_medium}>
+            {product.name}
+          </Text>
 
-      <VStack space="one" style={styles.info}>
-        <Text numberOfLines={2} style={Typography.footnote_13_medium}>
-          {product.name}
-        </Text>
+          <PriceLine price={product.price} compareAtPrice={product.compareAtPrice} />
 
-        <PriceLine price={product.price} compareAtPrice={product.compareAtPrice} />
+          {product.discountPercent ? (
+            <DiscountBadge percent={product.discountPercent} />
+          ) : null}
+        </VStack>
+      </Pressable>
 
-        {product.discountPercent ? (
-          <DiscountBadge percent={product.discountPercent} />
-        ) : null}
-      </VStack>
-    </Pressable>
+      <LikeButton
+        liked={liked}
+        onToggle={() => toggleFavorite(product.id)}
+        size={32}
+        iconSize={15}
+        style={styles.save}
+      />
+    </View>
   );
 }
 

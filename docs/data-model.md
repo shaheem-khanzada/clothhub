@@ -113,9 +113,15 @@ rows, so a page costs 15–130 ms on the full catalogue.
 
 ## `auth` — accounts *(phase 6)*
 
-Better Auth's tables: `users`, `sessions`, `accounts` (Apple / Google / email
-links per user), `verifications` (email codes). App data references
-`users.id`; nothing else from Better Auth is read by the app.
+✅ Better Auth's tables (`db/schema/auth.ts`):
+
+- **users**: `id` (UUIDv7), `name`, `email` (unique), `email_verified`, `image`
+- **sessions**: one per signed-in device — `token` (unique, in the session cookie), `user_id`, `expires_at` (60 days, extended with use)
+- **accounts**: how a user signs in, one row per method — `provider_id` (`credential` for email + password, `apple`, `google`), `account_id` (unique per provider), the password hash for `credential`
+- **verifications**: short-lived tokens (password reset, OAuth state)
+
+App data references `users.id` with ON DELETE CASCADE; nothing else from
+Better Auth is read by the app.
 
 ## `social` — people *(later)*
 

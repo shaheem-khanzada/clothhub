@@ -174,6 +174,16 @@ if [[ ! -f apps/api/.env ]]; then
 else
   note "apps/api/.env exists — kept."
 fi
+# Sign-in needs a secret to sign session cookies; give this computer its own.
+if ! grep -qE '^BETTER_AUTH_SECRET=.{32,}' apps/api/.env; then
+  secret="$(openssl rand -base64 32)"
+  if grep -q '^BETTER_AUTH_SECRET=' apps/api/.env; then
+    sed -i.bak "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=$secret|" apps/api/.env && rm -f apps/api/.env.bak
+  else
+    printf '\nBETTER_AUTH_SECRET=%s\nBETTER_AUTH_URL=http://localhost:3000\n' "$secret" >>apps/api/.env
+  fi
+  note "Added a sign-in secret to apps/api/.env"
+fi
 
 # ---------------------------------------------------------------------------
 bold "Updating the database schema"

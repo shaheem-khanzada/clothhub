@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+/** An optional variable; an empty value (`KEY=` in .env) counts as unset. */
+const optional = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((value) => (value === '' ? undefined : value), schema.optional());
+
 /**
  * Every environment variable the API reads, validated once at start-up.
  * A missing or malformed value stops the process with a clear message
@@ -17,7 +21,40 @@ const EnvSchema = z.object({
   DATABASE_URL: z.url(),
 
   /** Read-only connection to the scraper's MySQL database (mysql://…). Only the ingest job needs it. */
-  SCRAPER_DATABASE_URL: z.url().optional(),
+  SCRAPER_DATABASE_URL: optional(z.url()),
+
+  /*
+   * Sign-in (Better Auth). Only the server needs these; `authConfig()` checks
+   * them when it starts, so the jobs run without them.
+   */
+
+  /** Signs session cookies. 32+ random characters: `openssl rand -base64 32`. */
+  BETTER_AUTH_SECRET: optional(z.string().min(32)),
+  /** The API's public address, e.g. https://api.clothhub.digital. */
+  BETTER_AUTH_URL: optional(z.url()),
+
+  /**
+   * Google sign-in: the Web client's ID (Google Auth Platform → Clients). The
+   * app passes it as `webClientId`, so Google addresses identity tokens from
+   * both iOS and Android to it. Off until set.
+   */
+  GOOGLE_CLIENT_ID: optional(z.string().min(1)),
+  /** Only for a browser sign-in, which the app doesn't use. Optional. */
+  GOOGLE_CLIENT_SECRET: optional(z.string().min(1)),
+
+  /**
+   * Sign in with Apple, from the key made under developer.apple.com → Keys.
+   * Off until all three are set. The Team ID and Key ID are 10 characters.
+   */
+  APPLE_TEAM_ID: optional(z.string().length(10)),
+  APPLE_KEY_ID: optional(z.string().length(10)),
+  /**
+   * The key's .p8 file, BEGIN and END lines included. Multi-line in double
+   * quotes, or on one line with `\n` where the line breaks are.
+   */
+  APPLE_PRIVATE_KEY: optional(z.string().min(1).transform((key) => key.replaceAll('\\n', '\n').trim())),
+  /** The iOS app's bundle id: what Apple addresses the app's identity tokens to. */
+  APPLE_APP_BUNDLE_ID: z.string().min(1).default('com.clothhub.digital'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

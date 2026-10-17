@@ -28,3 +28,4 @@ export * from './catalog/brands';
 export * from './catalog/images';
 export * from './catalog/products';
 export * from './common/errors';
+export * from './me/account';

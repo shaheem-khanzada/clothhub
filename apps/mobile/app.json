@@ -10,20 +10,29 @@
     "ios": {
       "bundleIdentifier": "com.clothhub.digital",
       "supportsTablet": false,
+      "icon": "./assets/images/clothhub.icon",
       "config": {
         "usesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.clothhub.digital",
+      "package": "com.clothhubapp",
       "predictiveBackGestureEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#0B0B0C"
+        "backgroundColor": "#0B0B0C",
+        "monochromeImage": "./assets/images/adaptive-icon-monochrome.png"
       }
     },
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.437625319454-jo4bgi3r1b47fc451m3ul2hvpkag1ep6"
+        }
+      ],
       [
         "expo-splash-screen",
         {
