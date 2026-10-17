@@ -60,8 +60,11 @@ export function createAuth({ db, config, logger }: AuthDependencies) {
     socialProviders: {
       ...(config.google && {
         google: {
+          // Native sign-in: Better Auth checks the identity token, addressed to
+          // the Web client ID, against Google's public keys. The secret is only
+          // for a browser sign-in.
           clientId: config.google.clientId,
-          clientSecret: config.google.clientSecret,
+          ...(config.google.clientSecret && { clientSecret: config.google.clientSecret }),
         },
       }),
       ...(config.apple && {

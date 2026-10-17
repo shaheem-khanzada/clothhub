@@ -1,9 +1,17 @@
 import { useMutation } from '@tanstack/react-query';
+import {
+  GoogleSignin,
+  isCancelledResponse,
+  isErrorWithCode,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 
 import { apiClient } from '@/axios';
 import { authClient } from '@/lib/authClient';
+import { isAndroid } from '@/lib/deviceInfo';
+import { GOOGLE_SIGN_IN } from '@/lib/googleSignIn';
 
 import { unwrap } from './errors';
 
@@ -36,15 +44,15 @@ export function useSignUpWithEmail() {
   });
 }
 
-/** Development breadcrumbs for Apple sign-in. Never the tokens themselves. */
-function logApple(message: string, details?: unknown) {
+/** Development breadcrumbs for Apple and Google sign-in. Never the tokens themselves. */
+function logSignIn(provider: 'apple' | 'google', message: string, details?: unknown) {
   if (__DEV__) {
-    console.log(`[apple sign-in] ${message}`, details ?? '');
+    console.log(`[${provider} sign-in] ${message}`, details ?? '');
   }
 }
 
-/** How a Sign in with Apple ended: signed in, or the person closed Apple's sheet. */
-export type AppleSignInResult = 'signedIn' | 'cancelled';
+/** How a sign-in with Apple or Google ended: signed in, or the person closed its sheet. */
+export type SocialSignInResult = 'signedIn' | 'cancelled';
 
 /**
  * Sign in with Apple, natively (iOS). Apple's sheet returns an identity token,
@@ -53,7 +61,7 @@ export type AppleSignInResult = 'signedIn' | 'cancelled';
  */
 export function useSignInWithApple() {
   return useMutation({
-    mutationFn: async (): Promise<AppleSignInResult> => {
+    mutationFn: async (): Promise<SocialSignInResult> => {
       // Ties the identity token to this sign-in, so a stolen one can't be replayed.
       const nonce = Crypto.randomUUID();
       let credential: AppleAuthentication.AppleAuthenticationCredential;
@@ -68,14 +76,14 @@ export function useSignInWithApple() {
         });
       } catch (error) {
         if (error instanceof Error && 'code' in error && error.code === 'ERR_REQUEST_CANCELED') {
-          logApple('sheet closed by the person');
+          logSignIn('apple', 'sheet closed by the person');
           return 'cancelled';
         }
         console.warn('[apple sign-in] Apple\'s sheet failed', error);
         throw error;
       }
 
-      logApple('Apple returned a credential', {
+      logSignIn('apple', 'Apple returned a credential', {
         hasIdentityToken: Boolean(credential.identityToken),
         hasAuthorizationCode: Boolean(credential.authorizationCode),
         sharedEmail: Boolean(credential.email),
@@ -102,7 +110,7 @@ export function useSignInWithApple() {
         // The API's log says why (search it for "auth:").
         console.warn('[apple sign-in] the API refused the identity token', result.error);
       } else {
-        logApple('signed in');
+        logSignIn('apple', 'signed in');
       }
 
       unwrap(result);
@@ -113,10 +121,64 @@ export function useSignInWithApple() {
       if (credential.authorizationCode) {
         await apiClient
           .post('/v1/me/apple-authorization', { authorizationCode: credential.authorizationCode })
-          .then(() => logApple('authorization code saved for revoking'))
+          .then(() => logSignIn('apple', 'authorization code saved for revoking'))
           .catch((error: unknown) => console.warn('[apple sign-in] could not save the authorization code', error));
       }
 
+      return 'signedIn';
+    },
+  });
+}
+
+/**
+ * Sign in with Google, natively (iOS and Android). Google's sheet returns an
+ * identity token addressed to the Web client, which Better Auth checks and
+ * signs in with. Closing the sheet is not an error.
+ */
+export function useSignInWithGoogle() {
+  return useMutation({
+    mutationFn: async (): Promise<SocialSignInResult> => {
+      GoogleSignin.configure(GOOGLE_SIGN_IN);
+
+      if (isAndroid) {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      }
+
+      let response: Awaited<ReturnType<typeof GoogleSignin.signIn>>;
+
+      try {
+        response = await GoogleSignin.signIn();
+      } catch (error) {
+        // A second tap while Google's sheet is already open.
+        if (isErrorWithCode(error) && error.code === statusCodes.IN_PROGRESS) {
+          return 'cancelled';
+        }
+        console.warn('[google sign-in] Google\'s sheet failed', error);
+        throw error;
+      }
+
+      if (isCancelledResponse(response)) {
+        logSignIn('google', 'sheet closed by the person');
+        return 'cancelled';
+      }
+
+      const { idToken } = response.data;
+      logSignIn('google', 'Google returned a credential', { hasIdToken: Boolean(idToken) });
+
+      if (!idToken) {
+        throw new Error('Google sign-in returned no identity token');
+      }
+
+      const result = await authClient.signIn.social({ provider: 'google', idToken: { token: idToken } });
+
+      if (result.error) {
+        // The API's log says why (search it for "auth:").
+        console.warn('[google sign-in] the API refused the identity token', result.error);
+      } else {
+        logSignIn('google', 'signed in');
+      }
+
+      unwrap(result);
       return 'signedIn';
     },
   });

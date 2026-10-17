@@ -20,7 +20,7 @@ import { SocialSignIn } from './components/SocialSignIn';
 import { validateSignIn, type SignInMode } from './validation';
 
 /**
- * Sign in or create an account: Apple, Google (coming soon), or email and
+ * Sign in or create an account: Apple, Google, or email and
  * password. The `/sign-in` route, presented as a native form sheet that sizes
  * to its content.
  *

@@ -33,8 +33,13 @@ const EnvSchema = z.object({
   /** The API's public address, e.g. https://api.clothhub.digital. */
   BETTER_AUTH_URL: optional(z.url()),
 
-  /** Google sign-in. Off until both are set. */
+  /**
+   * Google sign-in: the Web client's ID (Google Auth Platform → Clients). The
+   * app passes it as `webClientId`, so Google addresses identity tokens from
+   * both iOS and Android to it. Off until set.
+   */
   GOOGLE_CLIENT_ID: optional(z.string().min(1)),
+  /** Only for a browser sign-in, which the app doesn't use. Optional. */
   GOOGLE_CLIENT_SECRET: optional(z.string().min(1)),
 
   /**

@@ -18,12 +18,12 @@ describe('authConfig', () => {
     expect(config).toMatchObject({ baseUrl: 'https://api.clothhub.digital', google: null, apple: null });
   });
 
-  it('switches Google on only when both of its values are set', () => {
-    const halfGoogle = authConfig(loadEnv({ ...base, GOOGLE_CLIENT_ID: 'id' }));
-    const fullGoogle = authConfig(loadEnv({ ...base, GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret' }));
+  it('switches Google on with the Web client ID; the secret is optional', () => {
+    const idOnly = authConfig(loadEnv({ ...base, GOOGLE_CLIENT_ID: 'id' }));
+    const withSecret = authConfig(loadEnv({ ...base, GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret' }));
 
-    expect(halfGoogle.google).toBeNull();
-    expect(fullGoogle.google).toEqual({ clientId: 'id', clientSecret: 'secret' });
+    expect(idOnly.google).toEqual({ clientId: 'id', clientSecret: null });
+    expect(withSecret.google).toEqual({ clientId: 'id', clientSecret: 'secret' });
   });
 
   it('switches Apple on with the Team ID, Key ID and key, for the app\'s bundle id', () => {

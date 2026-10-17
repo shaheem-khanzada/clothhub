@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import MockAdapter from 'axios-mock-adapter';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Alert } from 'react-native';
 
 import { apiClient } from '@/axios';
 
@@ -29,6 +29,7 @@ const signInEmail = jest.mocked(authClient.signIn.email);
 const signUpEmail = jest.mocked(authClient.signUp.email);
 const signInSocial = jest.mocked(authClient.signIn.social);
 const appleSignIn = jest.mocked(AppleAuthentication.signInAsync);
+const googleSignIn = jest.mocked(GoogleSignin.signIn);
 const api = new MockAdapter(apiClient);
 
 /** What Apple's sheet returns on a first sign-in. */
@@ -71,6 +72,7 @@ beforeEach(() => {
   signUpEmail.mockClear();
   signInSocial.mockClear();
   appleSignIn.mockReset();
+  googleSignIn.mockReset();
   api.reset();
   useAccountGate.getState().clear();
 });
@@ -126,15 +128,33 @@ describe('SignInView', () => {
     warn.mockRestore();
   });
 
-  it('says Google is coming for now', async () => {
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  it('signs in with Google, runs the waiting action and closes', async () => {
+    const waiting = jest.fn();
+    useAccountGate.getState().hold(waiting);
+    googleSignIn.mockResolvedValue({ type: 'success', data: { idToken: 'google-id-token' } } as never);
     await renderSignIn();
 
     await press('Continue with Google');
+    await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
 
-    expect(alert).toHaveBeenCalledWith('Coming soon', 'Signing in with Google is on its way. Use your email for now.');
-    expect(signInEmail).not.toHaveBeenCalled();
-    alert.mockRestore();
+    expect(GoogleSignin.configure).toHaveBeenCalledWith(
+      expect.objectContaining({ webClientId: expect.stringContaining('.apps.googleusercontent.com') }),
+    );
+    expect(signInSocial).toHaveBeenCalledWith({ provider: 'google', idToken: { token: 'google-id-token' } });
+    expect(waiting).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays open, quietly, when the person closes Google\'s sheet', async () => {
+    googleSignIn.mockResolvedValue({ type: 'cancelled', data: null } as never);
+    await renderSignIn();
+
+    await press('Continue with Google');
+    await waitFor(() => expect(googleSignIn).toHaveBeenCalled());
+    await settle();
+
+    expect(signInSocial).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.queryByText('Something went wrong. Please try again.')).toBeNull();
   });
 
   it('signs in with email and password, runs the waiting action and closes', async () => {

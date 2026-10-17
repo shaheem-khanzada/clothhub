@@ -27,7 +27,8 @@ npx eas-cli@latest build --platform ios --profile production --auto-submit
 - `--auto-submit` uploads the finished build to App Store Connect (creating the app record
   there on the first run). Apple processes it for 5–15 minutes; it then appears under
   **TestFlight**.
-- The bundle ID is `com.clothhub.digital` (iOS and Android). It is permanent once a build is uploaded.
+- The bundle ID is `com.clothhub.digital`. It is permanent once a build is uploaded.
+- Android uses `com.clothhubapp`, the existing Play Store app's package, so a release updates that listing. Builds must be signed with that app's upload key, and the version code must be above the old app's (EAS keeps it remotely: `eas build:version:set -p android`).
 - The build number goes up by itself (`autoIncrement`, stored on EAS). Raise `version` in
   `app.json` for a new marketing version (1.0.0 → 1.1.0).
 - The build reads its API address from `eas.json` (`EXPO_PUBLIC_API_URL`), not from

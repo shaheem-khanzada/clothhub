@@ -5,7 +5,7 @@ export type AuthConfig = {
   /** The API's public address (Better Auth's `baseURL`). */
   baseUrl: string;
   secret: string;
-  google: { clientId: string; clientSecret: string } | null;
+  google: { clientId: string; clientSecret: string | null } | null;
   apple: AppleConfig | null;
   /** Accept requests from Expo Go / dev clients (`exp://`) outside production. */
   devOrigins: boolean;
@@ -46,10 +46,9 @@ export function authConfig(env: Env): AuthConfig {
   return {
     baseUrl: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
-    google:
-      env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
-        ? { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }
-        : null,
+    google: env.GOOGLE_CLIENT_ID
+      ? { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET ?? null }
+      : null,
     apple:
       env.APPLE_TEAM_ID && env.APPLE_KEY_ID && env.APPLE_PRIVATE_KEY
         ? {

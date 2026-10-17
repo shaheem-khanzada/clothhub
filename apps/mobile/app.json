@@ -16,7 +16,7 @@
       }
     },
     "android": {
-      "package": "com.clothhub.digital",
+      "package": "com.clothhubapp",
       "predictiveBackGestureEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -27,6 +27,12 @@
     "plugins": [
       "expo-router",
       "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.437625319454-jo4bgi3r1b47fc451m3ul2hvpkag1ep6"
+        }
+      ],
       [
         "expo-splash-screen",
         {

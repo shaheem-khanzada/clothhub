@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
 import { Text } from '@/components/ui/Text';
 import { Spacing, Typography } from '@/constants/theme';
 import { authErrorKey } from '@/domain/auth/errors';
-import { useSignInWithApple } from '@/domain/auth/useAuthMutations';
+import { type SocialSignInResult, useSignInWithApple, useSignInWithGoogle } from '@/domain/auth/useAuthMutations';
 import { useTheme } from '@/hooks/useTheme';
 import { isIos } from '@/lib/deviceInfo';
 
@@ -16,34 +16,37 @@ type SocialSignInProps = {
 };
 
 /**
- * Continue with Apple / Google, above the email form.
+ * Continue with Apple / Google, above the email form. Both sign in natively.
  *
- * Apple signs in natively and is iOS only: that's where App Review requires
- * it next to Google, and on Android it would need the web flow. Google's
- * button says it's coming until its credentials exist.
+ * Apple is iOS only: that's where App Review requires it next to Google, and
+ * on Android it would need the web flow.
  */
 export function SocialSignIn({ onSignedIn }: SocialSignInProps) {
   const theme = useTheme();
   const { t } = useTranslation();
 
   const apple = useSignInWithApple();
-  const appleError = apple.error ? t(`auth.errors.${authErrorKey(apple.error)}`) : null;
+  const google = useSignInWithGoogle();
 
+  const busy = apple.isPending || google.isPending;
+  const failure = apple.error ?? google.error;
+  const error = failure ? t(`auth.errors.${authErrorKey(failure)}`) : null;
+
+  const onSuccess = (result: SocialSignInResult) => {
+    if (result === 'signedIn') {
+      onSignedIn();
+    }
+  };
+
+  // One sign-in at a time, and only the latest one's error on screen.
   const handleApple = () => {
-    apple.mutate(undefined, {
-      onSuccess: (result) => {
-        if (result === 'signedIn') {
-          onSignedIn();
-        }
-      },
-    });
+    google.reset();
+    apple.mutate(undefined, { onSuccess });
   };
 
   const handleGoogle = () => {
-    Alert.alert(
-      t('auth.social.comingSoonTitle'),
-      t('auth.social.comingSoonMessage', { provider: t('auth.social.googleName') }),
-    );
+    apple.reset();
+    google.mutate(undefined, { onSuccess });
   };
 
   return (
@@ -54,6 +57,7 @@ export function SocialSignIn({ onSignedIn }: SocialSignInProps) {
           title={t('auth.social.apple')}
           leftIcon="apple.fill"
           loading={apple.isPending}
+          disabled={google.isPending}
           onPress={handleApple}
         />
       ) : null}
@@ -62,17 +66,18 @@ export function SocialSignIn({ onSignedIn }: SocialSignInProps) {
         variant="surface"
         title={t('auth.social.google')}
         leftIcon="google.color"
+        loading={google.isPending}
         disabled={apple.isPending}
         style={{ backgroundColor: theme.sheetFill }}
         onPress={handleGoogle}
       />
 
-      {appleError ? (
+      {error && !busy ? (
         <Text
           accessibilityLiveRegion="polite"
           style={[Typography.subhead_15_regular, styles.error, { color: theme.danger }]}
         >
-          {appleError}
+          {error}
         </Text>
       ) : null}
 

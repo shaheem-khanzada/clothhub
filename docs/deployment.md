@@ -94,7 +94,7 @@ says which are on (see `.env.example`):
   contents, BEGIN/END lines included; Coolify takes a multi-line value). The server signs Apple's short-lived
   client secret from the key itself, so nothing expires. Only some of the three set, or a key that doesn't
   load, stops the server at startup.
-- **Google:** `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`.
+- **Google:** `GOOGLE_CLIENT_ID`, the Web client's ID. `GOOGLE_CLIENT_SECRET` is optional (only for a browser sign-in).
 
 ## 3. The ingest job (once per environment)
 
