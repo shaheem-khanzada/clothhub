@@ -43,7 +43,7 @@ function sheetOptions(theme: ThemeColors): NativeStackNavigationOptions {
     sheetAllowedDetents: 'fitToContents',
     sheetGrabberVisible: true,
     sheetCornerRadius: isIos ? undefined : 32,
-    contentStyle: { backgroundColor: isIos ? 'transparent' : theme.background },
+    contentStyle: { backgroundColor: isIos ? 'transparent' : theme.sheetBackground },
   };
 }
 

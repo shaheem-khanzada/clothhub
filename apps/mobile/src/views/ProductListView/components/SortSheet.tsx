@@ -37,7 +37,7 @@ export function SortSheet({ selected, onSelect }: SortSheetProps) {
       detents={['auto']}
       grabber
       // iOS 26 draws a Liquid Glass sheet when no background is given.
-      backgroundColor={isIos ? undefined : theme.background}
+      backgroundColor={isIos ? undefined : theme.sheetBackground}
     >
       <View style={styles.container}>
         <Text accessibilityRole="header" style={[Typography.title_22_bold, styles.title]}>

@@ -85,7 +85,7 @@ export function FilterSheet({ facets, filters, onApply }: FilterSheetProps) {
       detents={['auto']}
       grabber
       // iOS 26 draws a Liquid Glass sheet when no background is given.
-      backgroundColor={isIos ? undefined : theme.background}
+      backgroundColor={isIos ? undefined : theme.sheetBackground}
       onWillPresent={handleWillPresent}
       header={
         <HStack alignItems="center" justifyContent="space-between" style={styles.header}>

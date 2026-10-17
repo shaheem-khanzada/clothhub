@@ -16,11 +16,13 @@ import { useSignInWithEmail, useSignUpWithEmail } from '@/domain/auth/useAuthMut
 import { useTheme } from '@/hooks/useTheme';
 
 import { Field } from './components/Field';
+import { SocialSignIn } from './components/SocialSignIn';
 import { validateSignIn, type SignInMode } from './validation';
 
 /**
- * Sign in or create an account with email and password — the `/sign-in`
- * route, presented as a native form sheet that sizes to its content.
+ * Sign in or create an account: Apple or Google (coming soon), or email and
+ * password. The `/sign-in` route, presented as a native form sheet that sizes
+ * to its content.
  *
  * It opens from the account screen, or from an action that needs an account
  * (the heart): that action waits in `useAccountGate` and runs once the person
@@ -95,6 +97,8 @@ export default function SignInView() {
           {t(`${copy}.subtitle`)}
         </Text>
       </View>
+
+      <SocialSignIn />
 
       <View style={styles.fields}>
         {mode === 'signUp' ? (

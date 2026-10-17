@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Text } from '@/components/ui/Text';
 import { PageGutter, Radii, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
+import { isIos } from '@/lib/deviceInfo';
 import { feedback } from '@/lib/feedback';
 
 export const MORE_SHEET = 'reel-more';
@@ -76,10 +77,10 @@ export function MoreSheet({
       name={MORE_SHEET}
       detents={['auto']}
       grabber
-      backgroundColor={theme.background}
+      backgroundColor={isIos ? theme.background : theme.sheetBackground}
     >
       <View style={styles.container}>
-        <View style={[styles.list, { backgroundColor: theme.surface }]}>
+        <View style={[styles.list, { backgroundColor: theme.sheetFill }]}>
           {items.map((item, index) => (
             <View key={item.key}>
               <Pressable
@@ -87,7 +88,7 @@ export function MoreSheet({
                 onPress={item.onPress}
                 style={({ pressed }) => [
                   styles.row,
-                  pressed && { backgroundColor: theme.surfaceRaised },
+                  pressed && { backgroundColor: theme.sheetFillStrong },
                 ]}
               >
                 <HStack space="three" alignItems="center">

@@ -25,7 +25,7 @@ export const Field = forwardRef<TextInputRef, FieldProps>(({ label, error, acces
       <View
         style={[
           styles.box,
-          { backgroundColor: theme.surface, borderColor: error ? theme.danger : theme.border },
+          { backgroundColor: theme.sheetFill, borderColor: error ? theme.danger : theme.border },
         ]}
       >
         <TextInput

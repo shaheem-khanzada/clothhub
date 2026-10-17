@@ -10,6 +10,7 @@
     "ios": {
       "bundleIdentifier": "com.clothhub.digital",
       "supportsTablet": false,
+      "icon": "./assets/images/clothhub.icon",
       "config": {
         "usesNonExemptEncryption": false
       }
@@ -19,11 +20,13 @@
       "predictiveBackGestureEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#0B0B0C"
+        "backgroundColor": "#0B0B0C",
+        "monochromeImage": "./assets/images/adaptive-icon-monochrome.png"
       }
     },
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
       [
         "expo-splash-screen",
         {

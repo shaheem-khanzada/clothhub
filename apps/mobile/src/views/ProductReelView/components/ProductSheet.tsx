@@ -98,7 +98,7 @@ function Sheet({
       grabber
       // iOS: no background at all, so the system draws its Liquid Glass sheet
       // (iOS 26). Android has no glass sheet.
-      backgroundColor={isIos ? undefined : theme.background}
+      backgroundColor={isIos ? undefined : theme.sheetBackground}
       scrollableRef={scrollRef}
       style={styles.sheet}
       insetAdjustment={floatingSheet ? 'never' : 'automatic'}
@@ -119,7 +119,7 @@ function Sheet({
         />
       }
       // A solid footer would sit as a dark block on the glass.
-      footerStyle={isIos ? undefined : { backgroundColor: theme.background }}
+      footerStyle={isIos ? undefined : { backgroundColor: theme.sheetBackground }}
       onDidPresent={handleSettle}
       onDetentChange={handleSettle}
       onDismissAttempt={onRequestClose}

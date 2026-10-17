@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 
 import { useAccountGate } from '@/domain/auth/session';
 import { authClient } from '@/lib/authClient';
@@ -42,6 +43,18 @@ beforeEach(() => {
 });
 
 describe('SignInView', () => {
+  it('offers Apple and Google, which say they are coming for now', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    await renderSignIn();
+
+    expect(screen.getByRole('button', { name: 'Continue with Apple' })).toBeOnTheScreen();
+    await press('Continue with Google');
+
+    expect(alert).toHaveBeenCalledWith('Coming soon', 'Signing in with Google is on its way. Use your email for now.');
+    expect(signInEmail).not.toHaveBeenCalled();
+    alert.mockRestore();
+  });
+
   it('signs in with email and password, runs the waiting action and closes', async () => {
     const waiting = jest.fn();
     useAccountGate.getState().hold(waiting);
